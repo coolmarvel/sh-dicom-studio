@@ -38,6 +38,9 @@ public partial class ImageItemViewModel : ViewModelBase
     public string SourcePath { get; }
     public string FileName { get; }
 
+    /// <summary>로컬 DB 의 검사에서 불러온(또는 이미 추가 저장된) 이미지 — InsExam 대상에서 제외.</summary>
+    public bool IsFromDb { get; set; }
+
     /// <summary>현재 표시 중인(변환 반영된) 인코딩 바이트 — DICOM 변환의 입력.</summary>
     public byte[] EncodedBytes { get; private set; }
 

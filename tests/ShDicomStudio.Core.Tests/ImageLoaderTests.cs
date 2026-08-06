@@ -54,8 +54,9 @@ public class ImageLoaderTests : IDisposable
     [InlineData("x.jpg", true)]
     [InlineData("x.JPEG", true)]
     [InlineData("x.TIF", true)]
-    [InlineData("x.pdf", false)]
+    [InlineData("x.pdf", true)] // v0.1.6 부터 PDF 지원 (페이지당 1장)
     [InlineData("x.dcm", true)] // M2 부터 DICOM 열기 지원
+    [InlineData("x.hwp", false)]
     public void IsSupported_는_확장자로_판정한다(string fileName, bool expected)
     {
         Assert.Equal(expected, ImageLoader.IsSupported(fileName));

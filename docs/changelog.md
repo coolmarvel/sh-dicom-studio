@@ -12,6 +12,11 @@ domain: development
 <!-- ## vX.Y.Z — YYYY-MM-DD
 - 변경 요약 -->
 
+## v0.1.6 — 2026-08-06
+
+- **PDF 열기** — 페이지마다 이미지 1장으로 불러와 DICOM 변환 가능 (VPWinGate 방식)
+- **InsExam** — FindDB 로 연 검사에 새 이미지를 추가 저장 (같은 검사·새 시리즈)
+
 ## v0.1.5 — 2026-08-06
 
 - **로컬 DB (M4 핵심)** — SaveDB(검사 단위 보관)·FindDB(검색/열기/삭제) 활성화.

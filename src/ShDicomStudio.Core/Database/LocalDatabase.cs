@@ -170,6 +170,54 @@ public sealed class LocalDatabase : IDisposable
         return results;
     }
 
+    /// <summary>
+    /// 기존 검사에 영상 추가 (VPWinGate InsExam) — 같은 Study UID 의 새 Series 로 DICOM 을
+    /// 만들고 파일·메타를 이어 붙인다. 추가된 장수를 반환.
+    /// </summary>
+    public int AppendToStudy(long studyId, IReadOnlyList<byte[]> encodedImages)
+    {
+        var find = _conn.CreateCommand();
+        find.CommandText = "SELECT StudyUid, ImageCount FROM Study WHERE Id = $sid";
+        find.Parameters.AddWithValue("$sid", studyId);
+        using var found = find.ExecuteReader();
+        if (!found.Read()) throw new InvalidOperationException($"검사가 없습니다 (Id={studyId})");
+        var studyUid = found.GetString(0);
+        var existingCount = (int)found.GetInt64(1);
+
+        // 저장 당시 환자정보를 그대로 헤더에 쓴다 (검사 정보의 SSOT 는 DB 행)
+        var info = Search().First(r => r.Id == studyId).Info;
+
+        var study = new DicomStudy(studyUid);
+        var dir = Path.Combine(_root, "dicom", studyUid);
+        Directory.CreateDirectory(dir);
+
+        using var tx = _conn.BeginTransaction();
+        for (var i = 0; i < encodedImages.Count; i++)
+        {
+            var number = existingCount + i + 1;
+            var path = Path.Combine(dir, $"{number:00000}.dcm");
+            study.Create(encodedImages[i], info, i + 1).Save(path); // InstanceNumber 는 새 시리즈 내 1..N
+
+            var img = _conn.CreateCommand();
+            img.Transaction = tx;
+            img.CommandText = "INSERT INTO Image(StudyId, InstanceNumber, FilePath) VALUES($sid, $num, $path);";
+            img.Parameters.AddWithValue("$sid", studyId);
+            img.Parameters.AddWithValue("$num", number);
+            img.Parameters.AddWithValue("$path", path);
+            img.ExecuteNonQuery();
+        }
+
+        var upd = _conn.CreateCommand();
+        upd.Transaction = tx;
+        upd.CommandText = "UPDATE Study SET ImageCount = ImageCount + $n WHERE Id = $sid";
+        upd.Parameters.AddWithValue("$n", encodedImages.Count);
+        upd.Parameters.AddWithValue("$sid", studyId);
+        upd.ExecuteNonQuery();
+        tx.Commit();
+
+        return encodedImages.Count;
+    }
+
     /// <summary>검사의 DICOM 파일 경로들 (InstanceNumber 순).</summary>
     public List<string> GetImagePaths(long studyId)
     {

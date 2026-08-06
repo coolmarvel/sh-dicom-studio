@@ -11,6 +11,23 @@ domain: development
 
 블록 형식: `## YYYY-MM-DD — 제목` 아래에 **요청/피드백 → 수정 → 검증 → 다음** 순서로 간결하게.
 
+## 2026-08-06 — PDF 열기 + InsExam v0.1.6 (사용자 질문에서 파생)
+
+- **질문/피드백**: ① 삭제가 없다? → FindDB 창의 [삭제] 안내. ② PDF 열어도 dcm 으로
+  저장되나? → PDF 미지원이었음 → 구현. ③ 같은 환자 추가 저장이 별개 검사가 됨 —
+  update 아닌가? → "저장=새 검사"가 DICOM 기본, 검사에 잇는 건 InsExam → 구현.
+  ④ FindDB vs Worklist 차이 → 로컬 보관소 검색(과거·결과) vs 서버 예약 목록 조회(미래·예약).
+- **수정**:
+  - `ImageLoader.LoadAll` — PDF 를 pdfium(PDFtoImage 4.0.2, SkiaSharp 2.88 계열로 버전
+    고정)으로 페이지당 1장 렌더(150dpi). 픽커 필터·빈 화면 안내에 PDF 추가.
+  - `DicomStudy(existingStudyUid)` — 같은 Study·새 Series 로 이어가는 생성자.
+    `LocalDatabase.AppendToStudy` — 파일·메타 이어붙이고 ImageCount 갱신.
+  - InsExam 버튼 활성화 — FindDB 로 연 검사(OpenedStudyId 추적) + 새로 불러온 이미지
+    (IsFromDb=false)만 추가. 완료/검증 실패는 대화상자.
+  - 테스트: 손으로 조립한 2페이지 PDF 렌더 / InsExam Study·Series UID 규칙 (31/31).
+- **검증**: build/test/format ✅ · 스모크 ✅ → 인스톨러 0.1.6 바탕화면 교체.
+- **다음**: 사용자 실기(PDF·InsExam) → 옵션 화면 또는 2차(도커 서버) 착수.
+
 ## 2026-08-06 — M4 핵심(로컬 DB) + 재태깅 흐름 v0.1.5
 
 - **질문**: "익명으로 변환한 DICOM 을 다시 열어 정보 수정 후 저장하면 덮어쓰나?" →

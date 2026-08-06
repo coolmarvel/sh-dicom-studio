@@ -51,6 +51,10 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     private bool _hasImages;
 
+    /// <summary>FindDB 로 연 검사의 Id — InsExam(영상 추가 저장)의 대상이 된다.</summary>
+    [ObservableProperty]
+    private long? _openedStudyId;
+
     private List<ImageItemViewModel> _cutBuffer = [];
 
     public MainViewModel()
@@ -63,17 +67,23 @@ public partial class MainViewModel : ViewModelBase
         var supported = paths.Where(ImageLoader.IsSupported).ToList();
         var skipped = paths.Count - supported.Count;
 
+        var added = 0;
         foreach (var path in supported)
         {
-            var loaded = await Task.Run(() => ImageLoader.Load(path));
-            Images.Add(new ImageItemViewModel(loaded));
+            // PDF 는 페이지마다 이미지 1장으로 들어온다 (VPWinGate 방식)
+            var loadedList = await Task.Run(() => ImageLoader.LoadAll(path));
+            foreach (var loaded in loadedList)
+            {
+                Images.Add(new ImageItemViewModel(loaded));
+                added++;
+            }
         }
 
         SelectedImage ??= Images.FirstOrDefault();
         AutoLayout();
         StatusText = skipped == 0
-            ? $"{supported.Count}장 불러옴"
-            : $"{supported.Count}장 불러옴 (미지원 파일 {skipped}개 건너뜀)";
+            ? $"{added}장 불러옴"
+            : $"{added}장 불러옴 (미지원 파일 {skipped}개 건너뜀)";
 
         // .dcm 을 열었고 폼이 비어 있으면 그 헤더로 환자정보를 채운다 (재태깅 시나리오 —
         // 익명으로 변환해 둔 DICOM 을 다시 열어 정보를 수정 후 새로 저장하는 흐름).
@@ -262,8 +272,34 @@ public partial class MainViewModel : ViewModelBase
         SelectedImage = null;
         _cutBuffer = [];
         Images.Clear();
+        OpenedStudyId = null;
         SetLayout(1, 1);
         StatusText = IdleStatus;
+    }
+
+    // ── InsExam: FindDB 로 연 검사에 새 이미지 추가 저장 ────────────
+
+    public string? ValidateForInsExam()
+    {
+        if (OpenedStudyId is null)
+            return "먼저 [FindDB]에서 검사를 열어주세요 — 그 검사에 영상이 추가됩니다.";
+        if (!Images.Any(i => !i.IsFromDb))
+            return "추가할 새 이미지가 없습니다 — [Open]으로 불러온 뒤 다시 눌러주세요.";
+        return null;
+    }
+
+    public async Task<int> AppendToOpenedStudyAsync(LocalDatabase db)
+    {
+        var studyId = OpenedStudyId!.Value;
+        var newItems = Images.Where(i => !i.IsFromDb).ToList();
+        var images = newItems.Select(t => t.EncodedBytes).ToList();
+
+        var added = await Task.Run(() => db.AppendToStudy(studyId, images));
+
+        foreach (var item in newItems)
+            item.IsFromDb = true; // 중복 추가 방지
+        StatusText = $"기존 검사에 {added}장 추가 저장됨 (같은 Study·새 Series)";
+        return added;
     }
 
     // ── DICOM 저장 (M3) — 선택된 이미지, 없으면 전체 ────────────────

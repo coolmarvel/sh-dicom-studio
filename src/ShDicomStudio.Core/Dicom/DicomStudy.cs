@@ -13,8 +13,22 @@ namespace ShDicomStudio.Core.Dicom;
 /// </summary>
 public sealed class DicomStudy
 {
-    private readonly DicomUID _studyUid = DicomUIDGenerator.GenerateDerivedFromUUID();
+    private readonly DicomUID _studyUid;
     private readonly DicomUID _seriesUid = DicomUIDGenerator.GenerateDerivedFromUUID();
+
+    /// <summary>새 검사 시작 — Study/Series UID 신규 발급.</summary>
+    public DicomStudy() : this(null) { }
+
+    /// <summary>
+    /// 기존 검사에 영상 추가(InsExam) — 같은 Study UID 를 이어받고 Series 는 새로 발급한다
+    /// (DICOM 관례: 추가 촬영 = 같은 검사 안의 새 시리즈).
+    /// </summary>
+    public DicomStudy(string? existingStudyUid)
+    {
+        _studyUid = existingStudyUid is null
+            ? DicomUIDGenerator.GenerateDerivedFromUUID()
+            : DicomUID.Parse(existingStudyUid);
+    }
 
     /// <summary>이 저장 묶음(검사)의 Study Instance UID — 로컬 DB 의 검사 식별자로도 쓴다.</summary>
     public string StudyUid => _studyUid.UID;

@@ -97,7 +97,8 @@
                             <Button Classes="tile" Click="OnSaveDbClick" ToolTip.Tip="화면의 영상·정보를 로컬 DB에 검사로 저장">
                                 <StackPanel><i:Icon Value="mdi-database-plus"/><TextBlock Text="SaveDB"/></StackPanel>
                             </Button>
-                            <Button Classes="tile" IsEnabled="False" ToolTip.Tip="저장된 검사에 영상 추가 — 예정">
+                            <Button Classes="tile" Click="OnInsExamClick"
+                                    ToolTip.Tip="FindDB로 연 검사에 새 영상 추가 저장">
                                 <StackPanel><i:Icon Value="mdi-account-plus"/><TextBlock Text="InsExam"/></StackPanel>
                             </Button>
                             <Button Classes="tile" Click="OnFindDbClick" ToolTip.Tip="로컬 DB 검색·열기·삭제">
@@ -342,7 +343,7 @@
                     <TextBlock FontSize="15" Foreground="#B9C6DA" HorizontalAlignment="Center">
                         <Run Text="Open" FontWeight="Bold" Foreground="#E4ECF7"/><Run Text=" 으로 검사 결과를 불러오세요"/>
                     </TextBlock>
-                    <TextBlock Text="JPG · PNG · BMP · TIFF · DCM" FontSize="12" Foreground="#7286A2"
+                    <TextBlock Text="PDF · JPG · PNG · BMP · TIFF · DCM" FontSize="12" Foreground="#7286A2"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
             </Panel>

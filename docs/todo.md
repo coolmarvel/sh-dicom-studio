@@ -12,8 +12,8 @@ domain: development
 
 ## P1 — 다음 릴리스에서 다뤄야 함
 
-- [ ] M4 잔여: InsExam(검사에 영상 추가) · 옵션 화면(기본 Modality·레이아웃)
-- [ ] 사용자 확인 대기: DICOM 저장(0.1.4 대화상자) · 로컬 DB SaveDB/FindDB(0.1.5) 실기 테스트
+- [ ] M4 잔여: 옵션 화면(기본 Modality·레이아웃)
+- [ ] 사용자 확인 대기: PDF 열기·InsExam(0.1.6) 실기 테스트
 
 ## P2 — 가까운 로드맵
 - [ ] M4 로컬 DB (SQLite SaveDB/FindDB) + 옵션 화면

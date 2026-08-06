@@ -13,9 +13,9 @@ namespace ShDicomStudio.App.Views;
 
 public partial class MainWindow : Window
 {
-    private static readonly FilePickerFileType ImageFileType = new("이미지 (JPG/PNG/BMP/TIFF/DCM)")
+    private static readonly FilePickerFileType ImageFileType = new("이미지·문서 (JPG/PNG/BMP/TIFF/DCM/PDF)")
     {
-        Patterns = ["*.jpg", "*.jpeg", "*.png", "*.bmp", "*.tif", "*.tiff", "*.dcm"],
+        Patterns = ["*.jpg", "*.jpeg", "*.png", "*.bmp", "*.tif", "*.tiff", "*.dcm", "*.pdf"],
     };
 
     private readonly Flyout _layoutFlyout;
@@ -136,6 +136,31 @@ public partial class MainWindow : Window
         }
     }
 
+    // InsExam (VPWinGate 3.2.6) — FindDB 로 연 검사에 새로 불러온 이미지를 추가 저장.
+    private async void OnInsExamClick(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (ViewModel is not { } vm) return;
+
+            if (vm.ValidateForInsExam() is { } problem)
+            {
+                await Dialogs.ShowAsync(this, "검사에 영상 추가 (InsExam)", problem);
+                return;
+            }
+
+            var added = await vm.AppendToOpenedStudyAsync(Db);
+            await Dialogs.ShowAsync(this, "검사에 영상 추가 완료",
+                $"열려 있는 검사에 {added}장이 추가 저장되었습니다.\n(같은 검사(Study)의 새 시리즈로 기록)");
+        }
+        catch (Exception ex)
+        {
+            Program.LogCrash(ex);
+            await Dialogs.ShowAsync(this, "InsExam 실패",
+                $"추가 저장 중 오류가 발생했습니다.\n\n{ex}");
+        }
+    }
+
     // 로컬 DB 검색·열기 (VPWinGate FindDB) — 선택한 검사를 뷰어로 불러오고 폼을 채운다.
     private async void OnFindDbClick(object? sender, RoutedEventArgs e)
     {
@@ -148,8 +173,12 @@ public partial class MainWindow : Window
 
             vm.CloseAllCommand.Execute(null);
             await vm.LoadImagesAsync(Db.GetImagePaths(picked.Id));
+            foreach (var item in vm.Images)
+                item.IsFromDb = true; // InsExam 대상은 이후 새로 불러온 이미지만
+            vm.OpenedStudyId = picked.Id;
             vm.FillExam(picked.Info);
-            vm.StatusText = $"로컬 DB 검사 열림 — {picked.Info.PatientName} ({picked.Info.PatientId}) {picked.ImageCount}장";
+            vm.StatusText = $"로컬 DB 검사 열림 — {picked.Info.PatientName} ({picked.Info.PatientId}) {picked.ImageCount}장 · " +
+                            "이미지를 더 불러와 [InsExam]을 누르면 이 검사에 추가됩니다";
         }
         catch (Exception ex)
         {
