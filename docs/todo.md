@@ -12,8 +12,9 @@ domain: development
 
 ## P1 — 다음 릴리스에서 다뤄야 함
 
+- [ ] **S3: 검사 메타데이터 서버화** — POST/GET /api/studies, FindDB 서버 탭, 계정 관리 (`plans/0002-server.md`)
+- [ ] 사용자 확인 대기: 로그인 창·도커 서버(0.1.8) 실기 테스트
 - [ ] M4 잔여: 옵션 화면(기본 Modality·레이아웃)
-- [ ] 사용자 확인 대기: PDF 열기·InsExam(0.1.6) 실기 테스트
 
 ## P2 — 가까운 로드맵
 - [ ] M4 로컬 DB (SQLite SaveDB/FindDB) + 옵션 화면

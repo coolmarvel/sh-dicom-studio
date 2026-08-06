@@ -12,6 +12,11 @@ domain: development
 <!-- ## vX.Y.Z — YYYY-MM-DD
 - 변경 요약 -->
 
+## v0.1.8 — 2026-08-06
+
+- **2차 시작: 도커 서버 + 로그인** — `docker compose up` 으로 Oracle Free + ASP.NET Core
+  API 서버 기동. 앱 시작 시 로그인 창(admin 시드 계정, JWT), [오프라인으로 계속] 지원
+
 ## v0.1.7 — 2026-08-06
 
 - **검사 업데이트** — FindDB 로 연 검사에서 SaveDB 를 누르면 "기존 검사 업데이트(현재 화면

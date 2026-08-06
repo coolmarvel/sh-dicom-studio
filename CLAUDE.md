@@ -80,7 +80,9 @@ dotnet run --project src/ShDicomStudio.App          # 앱 실행 (개발)
 dotnet build ShDicomStudio.sln                      # 빌드
 dotnet test ShDicomStudio.sln                       # 테스트
 dotnet format ShDicomStudio.sln --verify-no-changes # 포맷 검사 (자동 수정은 --verify 빼고)
-dotnet run --project tools/ShotTool -- out.png loaded # 헤드리스 UI 스크린샷 (장면: main|loaded)
+dotnet run --project tools/ShotTool -- out.png loaded # 헤드리스 UI 스크린샷 (장면: main|loadedN|login)
+docker compose up -d --build                        # 2차 서버 (oracle + API) — Docker Desktop 필요
+curl http://localhost:8080/health                   # 서버 상태 (db 연결까지 보고)
 # 패키징: docs/guides/packaging.md — dotnet publish + Inno Setup(wine) → 바탕화면 전달
 ```
 
@@ -91,6 +93,7 @@ dotnet run --project tools/ShotTool -- out.png loaded # 헤드리스 UI 스크�
 | `src/ShDicomStudio.Core/` | UI 없는 도메인 로직 — DICOM 변환(fo-dicom)·로컬 DB(SQLite)·모델. **테스트 대상은 전부 여기로** |
 | `src/ShDicomStudio.App/` | Avalonia UI (MVVM). `Views/`(axaml) ↔ `ViewModels/`(CommunityToolkit.Mvvm) |
 | `tests/ShDicomStudio.Core.Tests/` | xUnit — Core 만 참조 (Avalonia 의존 금지) |
+| `src/ShDicomStudio.Server/` | 2차 API 서버 (ASP.NET Core 8 Minimal API + Oracle) — docker compose 로 구동 |
 | `installer/` | Inno Setup 스크립트 (WSL+wine 으로 컴파일 — packaging.md) |
 | `tools/ShotTool/` | 헤드리스 UI 스크린샷 도구 — **XAML 을 고치면 캡처로 눈 확인** |
 

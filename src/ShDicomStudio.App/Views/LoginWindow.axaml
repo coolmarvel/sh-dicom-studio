@@ -1,0 +1,54 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:i="https://github.com/projektanker/icons.avalonia"
+        x:Class="ShDicomStudio.App.Views.LoginWindow"
+        Title="sh DICOM Studio — 로그인"
+        Icon="avares://ShDicomStudio.App/Assets/appicon.ico"
+        Width="400" SizeToContent="Height" CanResize="False"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource ChromeBrush}">
+
+    <StackPanel Margin="28" Spacing="14">
+        <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center" Margin="0,4,0,6">
+            <Image Source="avares://ShDicomStudio.App/Assets/appicon.png" Width="34" Height="34"/>
+            <TextBlock VerticalAlignment="Center" FontSize="19" FontWeight="Bold">
+                <Run Text="sh " Foreground="{StaticResource BodyTextBrush}"/><Run Text="DICOM Studio" Foreground="{StaticResource AccentBrush}"/>
+            </TextBlock>
+        </StackPanel>
+
+        <StackPanel>
+            <TextBlock Classes="field" Text="서버 주소"/>
+            <TextBox Name="ServerBox" Text="http://localhost:8080"/>
+        </StackPanel>
+        <StackPanel>
+            <TextBlock Classes="field" Text="아이디"/>
+            <TextBox Name="UserBox"/>
+        </StackPanel>
+        <StackPanel>
+            <TextBlock Classes="field" Text="비밀번호"/>
+            <TextBox Name="PasswordBox" PasswordChar="●" KeyDown="OnPasswordKeyDown"/>
+        </StackPanel>
+
+        <TextBlock Name="StatusBlock" FontSize="12" Foreground="#FFE53935"
+                   TextWrapping="Wrap" IsVisible="False"/>
+
+        <Button Name="LoginButton" Click="OnLoginClick" HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Center"
+                Background="{StaticResource AccentBrush}" Foreground="White"
+                CornerRadius="8" Padding="0,10">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <i:Icon Value="mdi-login" FontSize="16"/>
+                <TextBlock Text="로그인" FontWeight="SemiBold"/>
+            </StackPanel>
+        </Button>
+
+        <Button Click="OnOfflineClick" HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Center" Background="Transparent"
+                Foreground="{StaticResource MutedTextBrush}" Padding="0,6"
+                Content="오프라인으로 계속 (서버 기능 없이 사용)"/>
+
+        <TextBlock FontSize="10" Foreground="{StaticResource MutedTextBrush}"
+                   HorizontalAlignment="Center" TextAlignment="Center"
+                   Text="제작 · 이성현 (SeongHyun Lee) · © 2026 All rights reserved"/>
+    </StackPanel>
+</Window>

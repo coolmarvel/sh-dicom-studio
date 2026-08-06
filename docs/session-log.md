@@ -11,6 +11,24 @@ domain: development
 
 블록 형식: `## YYYY-MM-DD — 제목` 아래에 **요청/피드백 → 수정 → 검증 → 다음** 순서로 간결하게.
 
+## 2026-08-06 — 2차 착수: 도커 서버(Oracle+API) + 로그인 v0.1.8 (S1·S2 완료)
+
+- **요청**: 2차(도커 서버) 착수 승인.
+- **수정**:
+  - ADR-0003(서버 스택 확정) · plans/0002-server.md (S1~S4).
+  - `src/ShDicomStudio.Server` — ASP.NET Core 8 Minimal API. Oracle 연결 재시도 →
+    USERS 스키마 생성 → admin/admin1234(BCrypt) 시드. `GET /health`(DB 상태 포함) ·
+    `POST /api/auth/login`(JWT HS256, 12h).
+  - `docker-compose.yml` — gvenzl/oracle-free:23-slim(APP_USER 자동 생성, healthcheck,
+    데이터 볼륨) + server(멀티스테이지 Dockerfile, oracle healthy 후 기동). `.dockerignore`.
+  - 앱 로그인 창(LoginWindow) — 서버주소/ID/PW, [오프라인으로 계속], 창 닫으면 종료.
+    성공 시 AppSession(JWT 보관) + 메인 타이틀에 사용자 표시. `ServerClient.LoginAsync`.
+- **검증**: build/test 32/32/format ✅ · **라이브 검증**: compose 기동 → /health `{db:ok}` ·
+  admin 로그인 JWT 발급 · 오답 401 · 클라이언트 LoginAsync E2E(성공/실패 메시지) ✅ ·
+  로그인 창 ShotTool 캡처 ✅ · 스모크 ✅ → 인스톨러 0.1.8 바탕화면 교체.
+- **주의**: compose 의 비밀번호·JWT_SECRET 은 로컬 개발용 — 외부 노출 시 변경.
+- **다음**: S3(검사 메타 서버화 — /api/studies, FindDB 서버 탭, 계정 관리).
+
 ## 2026-08-06 — 검사 업데이트(현재 화면 반영) v0.1.7
 
 - **피드백**: FindDB 로 연 검사(2장)에서 뷰어 Delete 로 1장을 지웠는데 그 상태를 저장할

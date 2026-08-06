@@ -31,3 +31,4 @@ created: 2026-08-06
 | 문서 | 내용 |
 |---|---|
 | `0001-mvp.md` | 1차 MVP — 이미지 → DICOM 변환·뷰어 (M1~M5) |
+| `0002-server.md` | 2차 — 도커 서버(ASP.NET Core + Oracle) + 로그인 (S1~S4) |

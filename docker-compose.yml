@@ -1,0 +1,40 @@
+# sh DICOM Studio — 2차 서버 구성 (ADR-0003)
+# 사용법: docker compose up -d   →   API http://localhost:8080/health
+# 주의: 비밀번호들은 로컬 개발용 기본값 — 외부 노출 시 반드시 변경.
+
+services:
+  oracle:
+    image: gvenzl/oracle-free:23-slim
+    container_name: shdicom-oracle
+    environment:
+      ORACLE_PASSWORD: oracle1234        # SYS/SYSTEM 비밀번호
+      APP_USER: shdicom                  # 앱 계정 (FREEPDB1 에 자동 생성)
+      APP_USER_PASSWORD: shdicom1234
+    ports:
+      - "1521:1521"                      # 로컬에서 DBeaver 등으로 직접 접속용
+    volumes:
+      - oracle-data:/opt/oracle/oradata  # 데이터 영속화 (compose down 해도 유지)
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]    # 이미지 내장 헬스체크
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+
+  server:
+    build:
+      context: .
+      dockerfile: src/ShDicomStudio.Server/Dockerfile
+    container_name: shdicom-server
+    environment:
+      ORACLE_CONN: "User Id=shdicom;Password=shdicom1234;Data Source=oracle:1521/FREEPDB1"
+      JWT_SECRET: "dev-only-secret-change-me-0123456789abcdef"
+    ports:
+      - "8080:8080"
+    depends_on:
+      oracle:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  oracle-data:

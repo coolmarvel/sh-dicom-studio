@@ -80,7 +80,22 @@ if (which == "savetest")
     return;
 }
 
-var win = new MainWindow { DataContext = vm };
+// logintest: 클라이언트 로그인 코드 E2E — 라이브 서버(localhost:8080)에 실제 로그인한다.
+if (which == "logintest")
+{
+    var loginTask = ShDicomStudio.App.Services.ServerClient.LoginAsync("http://localhost:8080", "admin", "admin1234");
+    while (!loginTask.IsCompleted) { Dispatcher.UIThread.RunJobs(); Thread.Sleep(10); }
+    var r = loginTask.GetAwaiter().GetResult();
+    Console.WriteLine($"success={r.Success} user={r.Username}({r.DisplayName}) token={(r.Token.Length > 0 ? "발급됨" : "-")} msg={r.Message}");
+
+    var badTask = ShDicomStudio.App.Services.ServerClient.LoginAsync("http://localhost:8080", "admin", "wrong");
+    while (!badTask.IsCompleted) { Dispatcher.UIThread.RunJobs(); Thread.Sleep(10); }
+    var bad = badTask.GetAwaiter().GetResult();
+    Console.WriteLine($"오답: success={bad.Success} msg={bad.Message}");
+    return;
+}
+
+Window win = which == "login" ? new LoginWindow() : new MainWindow { DataContext = vm };
 if (width is int ww) win.Width = ww;
 if (height is int hh) win.Height = hh;
 
