@@ -37,8 +37,8 @@
 
 ## 커밋 컨벤션
 
-Conventional Commits — `<type>: <한국어 제목>` + 리스트형 본문. **커밋/푸시는 사용자가 직접**
-(에이전트는 요청 시 커밋 메시지만 작성). 메시지 끝에 `Co-Authored-By` 트레일러.
+Conventional Commits — `<type>: <한국어 제목>` + 리스트형 본문. **검증 통과 후 에이전트가
+직접 커밋·푸시한다** (2026-08-06 사용자 위임). 메시지 끝에 `Co-Authored-By` 트레일러.
 
 type: `feat` `fix` `refactor` `chore` `docs` `style` `test` `perf` `ci` `build` `revert` `init` `remove` `rename` `hotfix`
 

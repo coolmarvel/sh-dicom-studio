@@ -12,14 +12,13 @@ domain: development
 
 ## P1 — 다음 릴리스에서 다뤄야 함
 
-- [ ] **M1: 창이 뜨고 이미지가 보인다** (`docs/plans/0001-mvp.md`)
-  - 파일 열기: JPG/PNG/BMP/TIFF 다중 선택 → 뷰어 표시 (`App/Views/MainWindow.axaml`)
-  - 단일 이미지 뷰: Fit 기본 + 휠 Zoom / 드래그 Pan / Reset
-  - 좌측 도구 패널 자리 잡기 (VPWinGate Toolbar1 배치 참고)
+- [ ] **M2: 뷰어를 VPWinGate 수준으로** (`docs/plans/0001-mvp.md`)
+  - 그리드 레이아웃(1×1~4×4) + 페이지 넘김 + Select All
+  - Image Tools: Rotate/FlipH·V/Invert/순서변경(Cut&Paste)/Delete
+  - 기존 DICOM(.dcm) 열기 (fo-dicom 판독 → 뷰어)
 
 ## P2 — 가까운 로드맵
 
-- [ ] M2 뷰어 완성 (그리드 레이아웃·페이지·Image Tools·dcm 열기) — `plans/0001-mvp.md`
 - [ ] M3 DICOM 변환·저장 (환자정보 패널 + fo-dicom Secondary Capture)
 - [ ] M4 로컬 DB (SQLite SaveDB/FindDB) + 옵션 화면
 - [ ] M5 인스톨러 (win exe 우선, mac/linux `[?]`) — `docs/guides/packaging.md`

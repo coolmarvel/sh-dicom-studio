@@ -17,7 +17,8 @@
 3. **검증 없이 전달하지 않는다**: `dotnet build ShDicomStudio.sln && dotnet test ShDicomStudio.sln
    && dotnet format ShDicomStudio.sln --verify-no-changes` 통과가 커밋 메시지 작성의 전제.
 4. **`.env` 를 직접 수정하지 않는다.** `.env.example` 수정 또는 사용자에게 요청.
-5. **`git add -A` / `git add .` 금지.** 파일을 지정해서 stage 한다. **커밋/푸시는 사용자가 직접.**
+5. **`git add -A` / `git add .` 금지.** 파일을 지정해서 stage 한다. 커밋/푸시는 검증 통과 후
+   에이전트가 수행한다 (2026-08-06 사용자 위임).
 6. **스택·구조 변경은 ADR 로**: 구조적 결정은 `docs/adr/NNNN-*.md` 에 근거와 함께 기록한다.
 7. **버전의 MINOR 승격은 사용자 선언이 있을 때만.**
 8. **브리프가 판정 기준**: 설계 논쟁·스코프 논쟁은 `docs/brief.md` 로 돌아와 판정한다.

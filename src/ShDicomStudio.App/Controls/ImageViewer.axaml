@@ -1,0 +1,9 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ShDicomStudio.App.Controls.ImageViewer"
+             ClipToBounds="True"
+             Background="#FF1E1E1E">
+    <Grid Name="PART_Host">
+        <Image Name="PART_Image" Stretch="None" RenderTransformOrigin="0,0"/>
+    </Grid>
+</UserControl>
