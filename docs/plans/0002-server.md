@@ -31,6 +31,10 @@ status: active
 
 - [ ] 3차 준비: Orthanc 컨테이너를 compose 에 추가 (PACS 전송 테스트 대상)
 - [ ] `[?]` 파일(DICOM)까지 서버 보관할지 — 3차 설계 시 결정
+- 3차 전송 UI 참고 (PPW 5.1 "검사 보내기" 모달, 2026-08-06 사용자 제공 자료):
+  로컬 IP 선택 · 목적지 remote host 목록(AETitle/호스트/포트/설명) · [연결 테스트](C-ECHO) ·
+  [Send]/[중지] · 압축 선택(Keep Original 등). FindDB 우클릭 "DICOM Storage SCP로 전송…"
+  메뉴는 자리만 만들어 둠(비활성).
 
 ## 범위 밖
 

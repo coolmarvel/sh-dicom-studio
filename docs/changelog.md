@@ -12,6 +12,13 @@ domain: development
 <!-- ## vX.Y.Z — YYYY-MM-DD
 - 변경 요약 -->
 
+## v0.1.9 — 2026-08-06
+
+- **JPG 내보내기 + 환자정보 오버레이** (PPW 5.1 참고) — 뷰어 툴바 버튼·FindDB 우클릭.
+  네 모서리에 환자ID/이름/성별나이/생년월일 · 검사명/Modality/검사일/장수 · 코멘트 ·
+  판독의 표기 (흰 글씨 + 그림자)
+- FindDB 우클릭 컨텍스트 메뉴 (열기/JPG 내보내기/삭제, DICOM 전송은 3차 자리)
+
 ## v0.1.8 — 2026-08-06
 
 - **2차 시작: 도커 서버 + 로그인** — `docker compose up` 으로 Oracle Free + ASP.NET Core

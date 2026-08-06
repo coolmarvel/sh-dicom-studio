@@ -377,6 +377,26 @@ public partial class MainViewModel : ViewModelBase
         return saved;
     }
 
+    /// <summary>선택(없으면 전체) 이미지를 JPG 로 내보낸다 — overlay 는 환자정보 4모서리 표기 (PPW 참고).</summary>
+    public async Task<int> ExportJpegAsync(string folder, bool overlay)
+    {
+        var targets = SelectedItems() is { Count: > 0 } sel ? sel : Images.ToList();
+        var info = BuildExamInfo();
+        var prefix = info.Anonymous || info.PatientId.Length == 0 ? "IMG" : info.PatientId;
+
+        var saved = 0;
+        foreach (var item in targets)
+        {
+            var number = saved + 1;
+            var path = Path.Combine(folder, $"{prefix}_{number:00000}.jpg");
+            await Task.Run(() => ImageExporter.ExportJpeg(item.EncodedBytes, info, overlay, number, targets.Count, path));
+            saved++;
+        }
+
+        StatusText = $"JPG {saved}장 내보냄{(overlay ? " (환자정보 오버레이)" : "")} → {folder}";
+        return saved;
+    }
+
     /// <summary>선택(없으면 전체) 이미지를 로컬 DB 에 검사 한 건으로 저장 (VPWinGate SaveDB).</summary>
     public async Task<int> SaveToDbAsync(LocalDatabase db)
     {

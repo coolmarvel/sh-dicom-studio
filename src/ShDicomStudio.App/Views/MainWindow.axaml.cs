@@ -155,6 +155,42 @@ public partial class MainWindow : Window
         }
     }
 
+    // JPG 내보내기 (PPW 5.1 참고) — 오버레이(환자정보 4모서리) 여부를 고르고 폴더에 저장.
+    private async void OnExportJpegClick(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (ViewModel is not { } vm) return;
+            if (!vm.HasImages)
+            {
+                await Dialogs.ShowAsync(this, "JPG 내보내기", "내보낼 이미지가 없습니다 — [Open]으로 먼저 불러오세요.");
+                return;
+            }
+
+            var choice = await Dialogs.ChooseAsync(this, "JPG 내보내기",
+                "환자·검사 정보를 이미지 네 모서리에 흰 글씨로 표기할까요? (PACS 내보내기 방식)",
+                ("overlay", "정보 오버레이 포함"),
+                ("plain", "원본 그대로"),
+                ("cancel", "취소"));
+            if (choice is not ("overlay" or "plain")) return;
+
+            var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            {
+                Title = "JPG 저장 폴더 선택",
+                AllowMultiple = false,
+            });
+            if (folders.Count == 0 || folders[0].TryGetLocalPath() is not { } folder) return;
+
+            var saved = await vm.ExportJpegAsync(folder, overlay: choice == "overlay");
+            await Dialogs.ShowAsync(this, "JPG 내보내기 완료", $"{saved}장이 저장되었습니다.\n\n{folder}");
+        }
+        catch (Exception ex)
+        {
+            Program.LogCrash(ex);
+            await Dialogs.ShowAsync(this, "JPG 내보내기 실패", $"내보내기 중 오류가 발생했습니다.\n\n{ex}");
+        }
+    }
+
     // InsExam (VPWinGate 3.2.6) — FindDB 로 연 검사에 새로 불러온 이미지를 추가 저장.
     private async void OnInsExamClick(object? sender, RoutedEventArgs e)
     {

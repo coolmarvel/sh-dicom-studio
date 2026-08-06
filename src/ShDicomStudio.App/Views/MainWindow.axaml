@@ -311,6 +311,15 @@
                         <Button Classes="toolbar" Command="{Binding LastPageCommand}" ToolTip.Tip="마지막 페이지">
                             <i:Icon Value="mdi-page-last" FontSize="16" Foreground="{StaticResource TileIconBrush}"/>
                         </Button>
+                        <Separator Width="1" Height="20" Background="{StaticResource RuleBrush}" Margin="4,0"/>
+                        <Button Classes="toolbar" Click="OnExportJpegClick"
+                                ToolTip.Tip="선택(없으면 전체) 이미지를 JPG로 — 환자정보 오버레이 선택 가능">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <i:Icon Value="mdi-image-move" FontSize="16" Foreground="{StaticResource TileIconBrush}"/>
+                                <TextBlock Text="JPG 내보내기" FontSize="12"
+                                           Foreground="{StaticResource BodyTextBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
                 </DockPanel>
             </Border>

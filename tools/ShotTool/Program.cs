@@ -55,6 +55,30 @@ if (which.StartsWith("loaded"))
     vm.Exam.StudyDescription = "동맥경화도검사";
 }
 
+// overlaytest: JPG 내보내기(정보 오버레이) 결과물을 만들어 눈으로 확인한다.
+if (which == "overlaytest")
+{
+    var dir = Directory.CreateTempSubdirectory("shdicom-overlay").FullName;
+    var demoPath = CreateDemoImages(dir, 1)[0];
+    var loaded = ImageLoader.Load(demoPath);
+    var info = new ShDicomStudio.Core.Dicom.ExamInfo
+    {
+        PatientId = "20260001",
+        PatientName = "홍길동",
+        Sex = "M",
+        Age = "45",
+        Modality = "OT",
+        StudyDate = new DateTime(2026, 8, 6),
+        BirthDate = new DateTime(1981, 3, 2),
+        StudyDescription = "동맥경화도검사",
+        ReferringPhysician = "김의사",
+        Comment = "6개월 후 추적검사",
+    };
+    ShDicomStudio.Core.Imaging.ImageExporter.ExportJpeg(loaded.EncodedBytes, info, overlay: true, 1, 3, outPath);
+    Console.WriteLine($"saved: {outPath}");
+    return;
+}
+
 // savetest: 화면 캡처 대신 저장 파이프라인 E2E — 이미지 2장을 DICOM 으로 저장하고 재판독한다.
 if (which == "savetest")
 {

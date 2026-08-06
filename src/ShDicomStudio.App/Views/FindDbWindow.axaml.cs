@@ -1,8 +1,13 @@
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using ShDicomStudio.App.ViewModels;
 using ShDicomStudio.Core.Database;
+using ShDicomStudio.Core.Imaging;
 
 namespace ShDicomStudio.App.Views;
 
@@ -13,6 +18,7 @@ namespace ShDicomStudio.App.Views;
 public partial class FindDbWindow : Window
 {
     private FindDbViewModel? Vm => DataContext as FindDbViewModel;
+    private LocalDatabase? _db;
 
     public FindDbWindow()
     {
@@ -21,6 +27,7 @@ public partial class FindDbWindow : Window
 
     public FindDbWindow(LocalDatabase db) : this()
     {
+        _db = db;
         DataContext = new FindDbViewModel(db);
     }
 
@@ -47,4 +54,43 @@ public partial class FindDbWindow : Window
     }
 
     private void OnCloseClick(object? sender, RoutedEventArgs e) => Close(null);
+
+    // 검사 전체를 JPG 로 내보내기 (정보 오버레이) — 저장 당시 환자정보를 그대로 얹는다.
+    private async void OnExportJpegClick(object? sender, RoutedEventArgs e)
+    {
+        if (Vm?.SelectedRow is not { } row || _db is not { } db) return;
+
+        try
+        {
+            var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            {
+                Title = "JPG 저장 폴더 선택",
+                AllowMultiple = false,
+            });
+            if (folders.Count == 0 || folders[0].TryGetLocalPath() is not { } folder) return;
+
+            var record = row.Record;
+            var paths = db.GetImagePaths(record.Id);
+            var saved = 0;
+            foreach (var dcmPath in paths)
+            {
+                var number = saved + 1;
+                var outPath = Path.Combine(folder, $"{record.Info.PatientId}_{number:00000}.jpg");
+                await Task.Run(() =>
+                {
+                    var loaded = ImageLoader.Load(dcmPath);
+                    ImageExporter.ExportJpeg(loaded.EncodedBytes, record.Info, overlay: true,
+                        number, paths.Count, outPath);
+                });
+                saved++;
+            }
+
+            await Dialogs.ShowAsync(this, "JPG 내보내기 완료", $"{saved}장이 저장되었습니다.\n\n{folder}");
+        }
+        catch (System.Exception ex)
+        {
+            Program.LogCrash(ex);
+            await Dialogs.ShowAsync(this, "JPG 내보내기 실패", $"내보내기 중 오류가 발생했습니다.\n\n{ex}");
+        }
+    }
 }

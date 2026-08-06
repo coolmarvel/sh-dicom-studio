@@ -78,6 +78,25 @@
                 </Border>
                 <ListBox ItemsSource="{Binding Results}" SelectedItem="{Binding SelectedRow}"
                          Background="Transparent" DoubleTapped="OnRowDoubleTapped">
+                    <ListBox.ContextMenu>
+                        <!-- PPW 5.1 워크리스트 우클릭 메뉴 차용 -->
+                        <ContextMenu>
+                            <MenuItem Header="검사 열기" Click="OnOpenClick">
+                                <MenuItem.Icon><i:Icon Value="mdi-folder-open"/></MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="JPG로 내보내기 (정보 오버레이)…" Click="OnExportJpegClick">
+                                <MenuItem.Icon><i:Icon Value="mdi-image-move"/></MenuItem.Icon>
+                            </MenuItem>
+                            <Separator/>
+                            <MenuItem Header="DICOM Storage SCP로 전송… (3차 예정)" IsEnabled="False">
+                                <MenuItem.Icon><i:Icon Value="mdi-send"/></MenuItem.Icon>
+                            </MenuItem>
+                            <Separator/>
+                            <MenuItem Header="검사 삭제" Click="OnDeleteClick">
+                                <MenuItem.Icon><i:Icon Value="mdi-delete"/></MenuItem.Icon>
+                            </MenuItem>
+                        </ContextMenu>
+                    </ListBox.ContextMenu>
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="vm:StudyRowViewModel">
                             <Grid ColumnDefinitions="110,120,140,50,70,*,60,120">

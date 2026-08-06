@@ -11,6 +11,7 @@
     <PackageReference Include="fo-dicom.Imaging.ImageSharp" Version="5.2.6" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.10" />
     <PackageReference Include="PDFtoImage" Version="4.0.2" />
+    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.7" />
   </ItemGroup>
 
 </Project>
