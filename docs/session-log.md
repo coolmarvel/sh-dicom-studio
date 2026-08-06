@@ -11,6 +11,26 @@ domain: development
 
 블록 형식: `## YYYY-MM-DD — 제목` 아래에 **요청/피드백 → 수정 → 검증 → 다음** 순서로 간결하게.
 
+## 2026-08-06 — v1.0.1 GitHub 릴리스 + ShotTool env 이미지 확장 (포트폴리오 연동)
+
+- **요청**: 포트폴리오(coolmarvel.github.io)에 이 프로젝트를 추가하면서 인스톨러·학습교재
+  다운로드와 실화면 스크린샷이 필요 (포트폴리오 세션에서 진행).
+- **수정**:
+  - **GitHub 릴리스 v1.0.1 생성** (저장소 public) — `sh-dicom-studio-Setup-1.0.1.exe`(36.5MB) +
+    `csharp-aspnet-study-guide.pdf`(바탕화면의 "C#과 ASP.NET 학습교재" 12강, 975KB) 업로드.
+    두 자산 모두 200 + 매직바이트(MZ/%PDF) 확인.
+    https://github.com/coolmarvel/sh-dicom-studio/releases/tag/v1.0.1
+  - **ShotTool 확장** — `SHDS_SHOT_IMAGES=<디렉터리>` 환경변수로 데모 그라데이션 대신 실제
+    이미지(사전 마스킹 필수)를 loaded/finddb/overlaytest 장면에 주입. env 모드에선 데모 환자를
+    김영희(F/57)로 맞추고, 2장째(옆으로 스캔된 검사지)는 RotateCw 로 세워 편집 기능 시연 +
+    ShowOverlay 켠 채 캡처.
+- **검증**: build/test 34/34/format ✅ · 8장면 캡처(login·dbconfig·main·loaded2·worklist·
+  finddb·send·overlaytest) 눈 확인 ✅ — worklist 는 라이브 도커 서버(Oracle)에 admin 로그인 후
+  가상 예약 3건 조회 화면.
+- **개인정보 주의**: 캡처에 쓴 동맥경화도 검사지 2장은 **타인의 실제 결과지라 ID·이름을
+  가상 값(20260001·KYH)으로 마스킹한 사본**만 사용했다 (원본은 레포·포트폴리오 어디에도 없음).
+  마스킹 스크립트는 포트폴리오 세션 scratchpad(일회성).
+
 ## 2026-08-06 — v1.0.1: 창 통합(Worklist 허브) + Magnify·Tools
 
 - **피드백**: "InsExam·SaveDB·FindDB·Worklist 복잡도만 올라감 — 워크리스트 하나로 통합" +

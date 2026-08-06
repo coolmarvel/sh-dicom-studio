@@ -33,43 +33,76 @@ int? height = args.Length > 3 && int.TryParse(args[3], out var h) ? h : null;
 
 var vm = new MainViewModel();
 
+// SHDS_SHOT_IMAGES=<디렉터리> 를 주면 데모 그라데이션 대신 그 폴더의 이미지(사전 마스킹 필수)를 쓴다.
+// ⚠ 이 폴더에 넣는 파일은 환자 식별정보가 이미 가상 값으로 마스킹된 것이어야 한다.
+var envImageDir = Environment.GetEnvironmentVariable("SHDS_SHOT_IMAGES");
+var envImages = envImageDir is not null && Directory.Exists(envImageDir)
+    ? Directory.GetFiles(envImageDir).Where(f => f.EndsWith(".jpg") || f.EndsWith(".png") || f.EndsWith(".bmp")).Order().ToList()
+    : [];
+
+List<string> DemoOrEnvImages(string dir, int count) =>
+    envImages.Count > 0
+        ? Enumerable.Range(0, count).Select(i => envImages[i % envImages.Count]).ToList()
+        : CreateDemoImages(dir, count);
+
+// 데모 환자 — 항상 가상 값. env 이미지(여성 검사지 마스킹본)일 땐 화면과 어긋나지 않게 맞춘다.
+void FillDemoExam(ExamInfoViewModel exam)
+{
+    if (envImages.Count > 0)
+    {
+        exam.PatientId = "20260001"; exam.PatientName = "김영희"; exam.Sex = "F"; exam.Age = "57";
+    }
+    else
+    {
+        exam.PatientId = "20260001"; exam.PatientName = "홍길동"; exam.Sex = "M"; exam.Age = "45";
+    }
+    exam.Modality = "OT";
+    exam.StudyDescription = "동맥경화도검사";
+}
+
 if (which.StartsWith("loaded"))
 {
     // "loaded" = 3장, "loaded4" 처럼 숫자를 붙이면 그 장수로 (자동 레이아웃 확인용)
     var count = int.TryParse(which["loaded".Length..], out var c) ? c : 3;
     var dir = Directory.CreateTempSubdirectory("shdicom-shot").FullName;
-    var paths = CreateDemoImages(dir, count);
+    var paths = DemoOrEnvImages(dir, count);
     foreach (var p in paths)
         vm.Images.Add(new ImageItemViewModel(ImageLoader.Load(p)));
 
     vm.AutoLayout(); // 장수 기반 자동 그리드 — 실제 Open 흐름과 동일
+
+    // env 이미지 2장째(옆으로 스캔된 환자용 리포트)는 회전 도구로 바로 세워 편집 기능을 보여준다.
+    if (envImages.Count > 0 && vm.Images.Count > 1)
+    {
+        vm.Images[1].IsSelected = true;
+        vm.SelectedImage = vm.Images[1];
+        vm.RotateCwCommand.Execute(null);
+        vm.Images[1].IsSelected = false;
+    }
+
     vm.Images[0].IsSelected = true;
     vm.SelectedImage = vm.Images[0];
+    if (envImages.Count > 0) vm.ShowOverlay = true; // v1.0 오버레이를 켠 상태로 캡처
 
-    // 가상의 데모 환자 (실존 정보 아님)
-    vm.Exam.PatientId = "20260001";
-    vm.Exam.PatientName = "홍길동";
-    vm.Exam.Sex = "M";
-    vm.Exam.Age = "45";
-    vm.Exam.Modality = "OT";
-    vm.Exam.StudyDescription = "동맥경화도검사";
+    FillDemoExam(vm.Exam);
+    if (envImages.Count > 0) vm.Exam.ReferringPhysician = "김의사";
 }
 
 // overlaytest: JPG 내보내기(정보 오버레이) 결과물을 만들어 눈으로 확인한다.
 if (which == "overlaytest")
 {
     var dir = Directory.CreateTempSubdirectory("shdicom-overlay").FullName;
-    var demoPath = CreateDemoImages(dir, 1)[0];
+    var demoPath = DemoOrEnvImages(dir, 1)[0];
     var loaded = ImageLoader.Load(demoPath);
     var info = new ShDicomStudio.Core.Dicom.ExamInfo
     {
         PatientId = "20260001",
-        PatientName = "홍길동",
-        Sex = "M",
-        Age = "45",
+        PatientName = envImages.Count > 0 ? "김영희" : "홍길동",
+        Sex = envImages.Count > 0 ? "F" : "M",
+        Age = envImages.Count > 0 ? "57" : "45",
         Modality = "OT",
         StudyDate = new DateTime(2026, 8, 6),
-        BirthDate = new DateTime(1981, 3, 2),
+        BirthDate = envImages.Count > 0 ? new DateTime(1969, 3, 2) : new DateTime(1981, 3, 2),
         StudyDescription = "동맥경화도검사",
         ReferringPhysician = "김의사",
         Comment = "6개월 후 추적검사",
@@ -196,13 +229,13 @@ if (which == "finddb")
 {
     var root = Directory.CreateTempSubdirectory("shdicom-finddb").FullName;
     findDbTemp = new ShDicomStudio.Core.Database.LocalDatabase(root);
-    var img = ImageLoader.Load(CreateDemoImages(root, 1)[0]);
+    var img = ImageLoader.Load(DemoOrEnvImages(root, 1)[0]);
     findDbTemp.SaveStudy(new ShDicomStudio.Core.Dicom.ExamInfo
     {
         PatientId = "20260001",
-        PatientName = "홍길동",
-        Sex = "M",
-        Age = "45",
+        PatientName = envImages.Count > 0 ? "김영희" : "홍길동",
+        Sex = envImages.Count > 0 ? "F" : "M",
+        Age = envImages.Count > 0 ? "57" : "45",
         Modality = "OT",
         StudyDate = new DateTime(2026, 8, 6),
         BirthDate = new DateTime(1981, 3, 2),
