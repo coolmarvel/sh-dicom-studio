@@ -97,6 +97,9 @@ dotnet format ShDicomStudio.sln --verify-no-changes # 포맷 검사 (자동 수�
 
 - 함정: Avalonia 최신 템플릿(v12)은 .NET 10/C# 13 용 — 이 프로젝트는 **net8.0 + Avalonia 11.2.2**
   고정 (sh-ip-scanner 검증 조합). 패키지 추가 시 net8.0 호환을 확인할 것.
+- 함정: `ItemsPanelTemplate` 안은 컴파일 바인딩 타입 추론이 안 된다 — `vm:` 타입 캐스트 바인딩은
+  빌드는 되지만 **런타임 크래시**. `ReflectionBinding` 을 쓸 것 (2026-08-06 M2 에서 실사고).
+  XAML 을 고치면 빌드 성공만 믿지 말고 `timeout 8 dotnet run` 실행 스모크까지 돌린다.
 
 ## 하네스 (Harness Engineering)
 

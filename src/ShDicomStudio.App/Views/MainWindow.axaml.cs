@@ -1,17 +1,19 @@
-using System.Collections.Generic;
 using System.Linq;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using Avalonia.VisualTree;
+using ShDicomStudio.App.Controls;
 using ShDicomStudio.App.ViewModels;
 
 namespace ShDicomStudio.App.Views;
 
 public partial class MainWindow : Window
 {
-    private static readonly FilePickerFileType ImageFileType = new("이미지 (JPG/PNG/BMP/TIFF)")
+    private static readonly FilePickerFileType ImageFileType = new("이미지 (JPG/PNG/BMP/TIFF/DCM)")
     {
-        Patterns = ["*.jpg", "*.jpeg", "*.png", "*.bmp", "*.tif", "*.tiff"],
+        Patterns = ["*.jpg", "*.jpeg", "*.png", "*.bmp", "*.tif", "*.tiff", "*.dcm"],
     };
 
     public MainWindow()
@@ -43,7 +45,36 @@ public partial class MainWindow : Window
             await ViewModel.LoadImagesAsync(paths);
     }
 
-    private void OnFitClick(object? sender, RoutedEventArgs e) => Viewer.Fit();
-    private void OnRealSizeClick(object? sender, RoutedEventArgs e) => Viewer.RealSize();
-    private void OnResetClick(object? sender, RoutedEventArgs e) => Viewer.Reset();
+    private void OnCellPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is Border { DataContext: ImageItemViewModel item })
+            ViewModel?.OnCellClicked(item);
+    }
+
+    // 썸네일 클릭 → 해당 이미지가 있는 페이지로 이동 + 선택 표시
+    private void OnThumbnailSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (ViewModel is not { } vm) return;
+        if (e.AddedItems.Count == 0 || e.AddedItems[0] is not ImageItemViewModel item) return;
+
+        var index = vm.Images.IndexOf(item);
+        if (index < 0) return;
+        vm.CurrentPage = index / vm.SelectedLayout.PageSize + 1;
+        vm.SelectedImage = item;
+    }
+
+    // Fit/실제크기/초기화 — 선택된 셀이 있으면 그 셀만, 없으면 화면의 모든 셀에 적용 (뷰 전용 동작이라 코드비하인드).
+    private void ApplyToViewers(System.Action<ImageViewer> action)
+    {
+        var viewers = this.GetVisualDescendants().OfType<ImageViewer>().ToList();
+        var selected = viewers
+            .Where(v => v.DataContext is ImageItemViewModel { IsSelected: true })
+            .ToList();
+        foreach (var viewer in selected.Count > 0 ? selected : viewers)
+            action(viewer);
+    }
+
+    private void OnFitClick(object? sender, RoutedEventArgs e) => ApplyToViewers(v => v.Fit());
+    private void OnRealSizeClick(object? sender, RoutedEventArgs e) => ApplyToViewers(v => v.RealSize());
+    private void OnResetClick(object? sender, RoutedEventArgs e) => ApplyToViewers(v => v.Reset());
 }

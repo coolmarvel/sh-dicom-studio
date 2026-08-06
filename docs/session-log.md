@@ -11,6 +11,22 @@ domain: development
 
 블록 형식: `## YYYY-MM-DD — 제목` 아래에 **요청/피드백 → 수정 → 검증 → 다음** 순서로 간결하게.
 
+## 2026-08-06 — M2 완료: 그리드 뷰어 + Image Tools + DICOM 열기
+
+- **요청**: 레포 생성(사용자가 `gh repo create` 직접 실행 — 분류기 차단 때문) 후 M2 진행.
+- **수정**:
+  - Core `ImageTransformer` — Rotate90/180·Flip·Invert 를 **픽셀에 직접 적용** (뷰 변환 아님 —
+    M3 DICOM 변환이 EncodedBytes 를 그대로 쓰는 설계). `DicomRuntime` — ImageSharp 렌더러 1회 등록.
+  - Core `ImageLoader` — `.dcm` 지원 (fo-dicom 렌더 → PNG, 멀티프레임 첫 프레임).
+  - App — 그리드 레이아웃(1×1~4×4, ItemsControl+UniformGrid) · 페이지 넘김 · 셀 클릭 선택(빨간
+    테두리, Classes.selected) · Select All · Image Tools 버튼 · Cut&Paste 순서변경 · Delete ·
+    썸네일 클릭 → 해당 페이지 점프.
+  - 함정 기록: **ItemsPanelTemplate 안에서는 컴파일 바인딩 타입 추론 불가** — `vm:` 캐스트가
+    런타임 크래시. `ReflectionBinding` 으로 해결 (패널은 DataContext 상속).
+- **검증**: build ✅ · test 19/19 ✅ (변환 픽셀 위치 검증 5종 + DICOM 파일 생성·로드 라운드트립) ·
+  format ✅ · WSLg 실행 스모크 8초 무크래시 ✅
+- **다음**: M3 — 환자정보 패널 + Secondary Capture DICOM 생성·저장.
+
 ## 2026-08-06 — M1 완료: 이미지 열기 + 뷰어
 
 - **요청**: 레포 생성·푸시 후 M1 시작. **커밋/푸시를 에이전트에 위임** (CLAUDE.md·AGENTS.md 규칙 갱신).

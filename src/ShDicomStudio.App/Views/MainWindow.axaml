@@ -14,32 +14,64 @@
         <vm:MainViewModel/>
     </Design.DataContext>
 
+    <Window.Styles>
+        <!-- 뷰어 셀 — 선택되면 VPWinGate 처럼 빨간 테두리 -->
+        <Style Selector="Border.cell">
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="BorderBrush" Value="#FF3F3F46"/>
+            <Setter Property="Margin" Value="2"/>
+        </Style>
+        <Style Selector="Border.cell.selected">
+            <Setter Property="BorderBrush" Value="#FFE53935"/>
+        </Style>
+        <Style Selector="Button.tool">
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+    </Window.Styles>
+
     <DockPanel>
-        <!-- 좌측 도구 패널 (VPWinGate Toolbar1 배치 대응 — M2/M3 에서 채워진다) -->
+        <!-- 좌측 도구 패널 (VPWinGate Toolbar1 대응) -->
         <Border DockPanel.Dock="Left" Width="210" Background="#FF2D2D30" Padding="8">
             <StackPanel Spacing="12">
                 <TextBlock Text="Main Tools" FontWeight="Bold" Foreground="#FFCCCCCC"/>
                 <Grid ColumnDefinitions="*,6,*">
-                    <Button Grid.Column="0" Name="OpenButton" Content="열기" HorizontalAlignment="Stretch"
-                            HorizontalContentAlignment="Center" Click="OnOpenClick"/>
-                    <Button Grid.Column="2" Content="모두 닫기" HorizontalAlignment="Stretch"
-                            HorizontalContentAlignment="Center" Command="{Binding CloseAllCommand}"/>
+                    <Button Grid.Column="0" Classes="tool" Content="열기" Click="OnOpenClick"/>
+                    <Button Grid.Column="2" Classes="tool" Content="모두 닫기" Command="{Binding CloseAllCommand}"/>
                 </Grid>
 
                 <TextBlock Text="Information" FontWeight="Bold" Foreground="#FFCCCCCC"/>
                 <TextBlock Text="환자·검사 정보 입력 (M3 예정)" Foreground="#FF888888"
                            FontSize="12" TextWrapping="Wrap"/>
 
-                <TextBlock Text="Image Tools" FontWeight="Bold" Foreground="#FFCCCCCC"/>
-                <TextBlock Text="Rotate/Flip/Invert 등 (M2 예정)" Foreground="#FF888888"
-                           FontSize="12" TextWrapping="Wrap"/>
+                <TextBlock Text="Image Tools — 선택된 이미지에 적용" FontWeight="Bold"
+                           Foreground="#FFCCCCCC" TextWrapping="Wrap"/>
+                <Grid ColumnDefinitions="*,6,*" RowDefinitions="Auto,6,Auto,6,Auto,6,Auto">
+                    <Button Grid.Row="0" Grid.Column="0" Classes="tool" Content="↻ 회전"
+                            Command="{Binding RotateCwCommand}"/>
+                    <Button Grid.Row="0" Grid.Column="2" Classes="tool" Content="↺ 회전"
+                            Command="{Binding RotateCcwCommand}"/>
+                    <Button Grid.Row="2" Grid.Column="0" Classes="tool" Content="좌우 반전"
+                            Command="{Binding FlipHorizontalCommand}"/>
+                    <Button Grid.Row="2" Grid.Column="2" Classes="tool" Content="상하 반전"
+                            Command="{Binding FlipVerticalCommand}"/>
+                    <Button Grid.Row="4" Grid.Column="0" Classes="tool" Content="색 반전"
+                            Command="{Binding InvertCommand}"/>
+                    <Button Grid.Row="4" Grid.Column="2" Classes="tool" Content="삭제"
+                            Command="{Binding DeleteSelectedCommand}"/>
+                    <Button Grid.Row="6" Grid.Column="0" Classes="tool" Content="잘라내기"
+                            Command="{Binding CutCommand}"/>
+                    <Button Grid.Row="6" Grid.Column="2" Classes="tool" Content="붙여넣기"
+                            Command="{Binding PasteCommand}"/>
+                </Grid>
             </StackPanel>
         </Border>
 
-        <!-- 우측 썸네일 목록 -->
+        <!-- 우측 썸네일 목록 (전체 이미지 — 클릭하면 해당 페이지로 이동) -->
         <Border DockPanel.Dock="Right" Width="150" Background="#FF252526">
             <ListBox ItemsSource="{Binding Images}"
-                     SelectedItem="{Binding SelectedImage}"
+                     SelectionChanged="OnThumbnailSelectionChanged"
                      Background="Transparent">
                 <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="vm:ImageItemViewModel">
@@ -62,18 +94,53 @@
             </DockPanel>
         </Border>
 
-        <!-- 중앙: 뷰어 툴바 + 이미지 뷰 -->
+        <!-- 중앙: 뷰어 툴바 + 그리드 뷰어 -->
         <DockPanel>
             <Border DockPanel.Dock="Top" Background="#FF333337" Padding="6,4">
                 <StackPanel Orientation="Horizontal" Spacing="6">
+                    <ComboBox ItemsSource="{Binding LayoutOptions}"
+                              SelectedItem="{Binding SelectedLayout}"
+                              MinWidth="70">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:GridLayoutOption">
+                                <TextBlock Text="{Binding Label}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Button Content="전체선택" Command="{Binding ToggleSelectAllCommand}"/>
+                    <Button Content="⏮" Command="{Binding FirstPageCommand}"/>
+                    <Button Content="◀" Command="{Binding PrevPageCommand}"/>
+                    <TextBlock VerticalAlignment="Center" Foreground="#FFCCCCCC" FontSize="12">
+                        <Run Text="{Binding CurrentPage}"/><Run Text=" / "/><Run Text="{Binding PageCount}"/>
+                    </TextBlock>
+                    <Button Content="▶" Command="{Binding NextPageCommand}"/>
+                    <Button Content="⏭" Command="{Binding LastPageCommand}"/>
                     <Button Content="Fit" Click="OnFitClick"/>
                     <Button Content="실제 크기" Click="OnRealSizeClick"/>
                     <Button Content="초기화" Click="OnResetClick"/>
-                    <TextBlock Text="휠: 확대/축소 · 드래그: 이동" Foreground="#FF888888"
+                    <TextBlock Text="클릭: 선택 · 휠: 확대/축소 · 드래그: 이동" Foreground="#FF888888"
                                FontSize="12" VerticalAlignment="Center" Margin="12,0,0,0"/>
                 </StackPanel>
             </Border>
-            <controls:ImageViewer Name="Viewer" Source="{Binding SelectedImage.Bitmap, FallbackValue={x:Null}}"/>
+
+            <ItemsControl ItemsSource="{Binding PageImages}" Background="#FF1E1E1E">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <!-- ItemsPanelTemplate 안은 컴파일 바인딩 타입 추론이 안 되므로 ReflectionBinding 사용
+                             (패널의 DataContext 는 MainViewModel 을 상속받는다) -->
+                        <UniformGrid Rows="{ReflectionBinding SelectedLayout.Rows}"
+                                     Columns="{ReflectionBinding SelectedLayout.Cols}"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ImageItemViewModel">
+                        <Border Classes="cell" Classes.selected="{Binding IsSelected}"
+                                PointerPressed="OnCellPressed" Background="#FF1E1E1E">
+                            <controls:ImageViewer Source="{Binding Bitmap}"/>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </DockPanel>
     </DockPanel>
 </Window>
