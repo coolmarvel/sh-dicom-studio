@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using ShDicomStudio.Core.Database;
 
 namespace ShDicomStudio.App.Services;
 
@@ -59,6 +62,69 @@ public sealed class ServerClient
         catch (HttpRequestException ex)
         {
             return new LoginResult(false, $"서버에 연결할 수 없습니다 — {ex.Message}");
+        }
+    }
+
+    /// <summary>서버의 검사 메타 한 건 (파일은 로컬에만 있음 — 3차에서 결정).</summary>
+    public sealed record ServerStudy(
+        string StudyUid, string PatientId, string PatientName, string Sex, string Age,
+        string Modality, DateTime? StudyDate, DateTime? BirthDate, string StudyDescription,
+        string AccessionNumber, string ReferringPhysician, string Comment, bool Anonymous,
+        int ImageCount, DateTime CreatedAt, string Username);
+
+    /// <summary>로컬 DB 검사 메타를 서버에 업로드(upsert). 실패해도 예외 대신 false — 로컬 저장이 우선.</summary>
+    public static async Task<bool> UploadStudyAsync(StudyRecord record)
+    {
+        if (!AppSession.IsOnline) return false;
+        try
+        {
+            var info = record.Info;
+            var payload = new ServerStudy(record.StudyUid, info.PatientId, info.PatientName,
+                info.Sex, info.Age, info.Modality, info.StudyDate, info.BirthDate,
+                info.StudyDescription, info.AccessionNumber, info.ReferringPhysician,
+                info.Comment, info.Anonymous, record.ImageCount, record.CreatedAt, AppSession.Username);
+
+            using var request = new HttpRequestMessage(HttpMethod.Post,
+                $"{AppSession.ServerUrl.TrimEnd('/')}/api/studies")
+            {
+                Content = JsonContent.Create(payload),
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", AppSession.Token);
+
+            var response = await Http.SendAsync(request);
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>서버 검사 메타 검색 — 실패 시 null (호출부가 안내).</summary>
+    public static async Task<List<ServerStudy>?> SearchStudiesAsync(
+        string? patientId, string? patientName, string? modality, DateTime? from, DateTime? to)
+    {
+        if (!AppSession.IsOnline) return null;
+        try
+        {
+            var query = new List<string>();
+            if (!string.IsNullOrWhiteSpace(patientId)) query.Add($"patientId={Uri.EscapeDataString(patientId)}");
+            if (!string.IsNullOrWhiteSpace(patientName)) query.Add($"patientName={Uri.EscapeDataString(patientName)}");
+            if (!string.IsNullOrWhiteSpace(modality)) query.Add($"modality={Uri.EscapeDataString(modality)}");
+            if (from is { } f) query.Add($"from={f:yyyy-MM-dd}");
+            if (to is { } t) query.Add($"to={t:yyyy-MM-dd}");
+
+            using var request = new HttpRequestMessage(HttpMethod.Get,
+                $"{AppSession.ServerUrl.TrimEnd('/')}/api/studies{(query.Count > 0 ? "?" + string.Join('&', query) : "")}");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", AppSession.Token);
+
+            var response = await Http.SendAsync(request);
+            if (!response.IsSuccessStatusCode) return null;
+            return await response.Content.ReadFromJsonAsync<List<ServerStudy>>();
+        }
+        catch
+        {
+            return null;
         }
     }
 }

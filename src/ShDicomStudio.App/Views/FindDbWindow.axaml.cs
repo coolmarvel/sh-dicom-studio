@@ -35,15 +35,27 @@ public partial class FindDbWindow : Window
 
     private void OnRowDoubleTapped(object? sender, TappedEventArgs e) => OpenSelected();
 
-    private void OpenSelected()
+    private async void OpenSelected()
     {
-        if (Vm?.SelectedRow is { } row)
-            Close(row.Record);
+        if (Vm?.SelectedRow is not { } row) return;
+        if (row.IsServer)
+        {
+            await Dialogs.ShowAsync(this, "서버 검사",
+                "서버 검색 결과는 조회 전용입니다 — DICOM 파일은 저장한 PC 의 로컬 DB 에 있습니다.\n" +
+                "(파일 서버 보관은 3차에서 결정)");
+            return;
+        }
+        Close(row.Record);
     }
 
     private async void OnDeleteClick(object? sender, RoutedEventArgs e)
     {
         if (Vm is not { SelectedRow: { } row } vm) return;
+        if (row.IsServer)
+        {
+            await Dialogs.ShowAsync(this, "서버 검사", "서버 검색 결과는 조회 전용입니다 — 삭제할 수 없습니다.");
+            return;
+        }
 
         var ok = await Dialogs.ConfirmAsync(this, "검사 삭제",
             $"'{row.PatientName}' ({row.PatientId}) 검사 {row.CountText}을 삭제할까요?\n" +
@@ -59,6 +71,11 @@ public partial class FindDbWindow : Window
     private async void OnExportJpegClick(object? sender, RoutedEventArgs e)
     {
         if (Vm?.SelectedRow is not { } row || _db is not { } db) return;
+        if (row.IsServer)
+        {
+            await Dialogs.ShowAsync(this, "서버 검사", "서버 검색 결과는 조회 전용입니다 — 파일이 로컬에 없어 내보낼 수 없습니다.");
+            return;
+        }
 
         try
         {

@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using ShDicomStudio.Server;
 
@@ -12,13 +13,31 @@ var oracleConn = Environment.GetEnvironmentVariable("ORACLE_CONN")
 var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET")
     ?? "dev-only-secret-change-me-0123456789abcdef"; // 32자 이상 필요 (HS256)
 
+var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
+
 builder.Services.AddSingleton(new UserStore(oracleConn));
+builder.Services.AddSingleton(new StudyStore(oracleConn));
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options => options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidIssuer = "sh-dicom-studio",
+        ValidAudience = "sh-dicom-studio-app",
+        IssuerSigningKey = signingKey,
+        ValidateIssuerSigningKey = true,
+    });
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Oracle 은 첫 기동이 느리다 — 준비될 때까지 재시도 후 스키마·admin 시드.
 var users = app.Services.GetRequiredService<UserStore>();
+var studies = app.Services.GetRequiredService<StudyStore>();
 await users.InitializeWithRetryAsync(app.Logger, maxAttempts: 60, delaySeconds: 5);
+await studies.InitializeAsync();
 
 // ── 엔드포인트 ──────────────────────────────────────────────────────
 
@@ -35,15 +54,29 @@ app.MapPost("/api/auth/login", async (LoginRequest request) =>
     if (user is null)
         return Results.Unauthorized();
 
-    var token = CreateJwt(user, jwtSecret);
+    var token = CreateJwt(user, signingKey);
     return Results.Ok(new LoginResponse(token, user.Username, user.DisplayName));
 });
 
+// 검사 메타 업로드 (SaveDB/업데이트/InsExam 시 클라이언트가 호출) — 로그인 필요.
+app.MapPost("/api/studies", async (StudyDto dto, ClaimsPrincipal principal) =>
+{
+    var username = principal.FindFirstValue(ClaimTypes.NameIdentifier)
+        ?? principal.FindFirstValue(JwtRegisteredClaimNames.Sub) ?? "unknown";
+    await studies.UpsertAsync(dto with { Username = username });
+    return Results.Ok(new { ok = true });
+}).RequireAuthorization();
+
+// 검사 메타 검색 — 로그인 필요.
+app.MapGet("/api/studies", async (string? patientId, string? patientName, string? modality,
+        string? from, string? to) =>
+    Results.Ok(await studies.SearchAsync(patientId, patientName, modality, from, to)))
+    .RequireAuthorization();
+
 app.Run();
 
-static string CreateJwt(UserRecord user, string secret)
+static string CreateJwt(UserRecord user, SymmetricSecurityKey key)
 {
-    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
     var token = new JwtSecurityToken(
         issuer: "sh-dicom-studio",
         audience: "sh-dicom-studio-app",

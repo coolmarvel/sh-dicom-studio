@@ -119,6 +119,38 @@ if (which == "logintest")
     return;
 }
 
+// synctest: 로그인 → 로컬 DB 검사 생성 → 서버 업로드 → 서버 검색 (S3 클라이언트 E2E)
+if (which == "synctest")
+{
+    T Pump<T>(Task<T> task)
+    {
+        while (!task.IsCompleted) { Dispatcher.UIThread.RunJobs(); Thread.Sleep(10); }
+        return task.GetAwaiter().GetResult();
+    }
+
+    var login = Pump(ShDicomStudio.App.Services.ServerClient.LoginAsync("http://localhost:8080", "admin", "admin1234"));
+    if (!login.Success) { Console.WriteLine($"FAIL login: {login.Message}"); return; }
+    ShDicomStudio.App.Services.AppSession.SignIn("http://localhost:8080", login.Username, login.DisplayName, login.Token);
+
+    var dbRoot = Directory.CreateTempSubdirectory("shdicom-sync").FullName;
+    using var db = new ShDicomStudio.Core.Database.LocalDatabase(dbRoot);
+    var demo = ImageLoader.Load(CreateDemoImages(dbRoot, 1)[0]);
+    var record = db.SaveStudy(new ShDicomStudio.Core.Dicom.ExamInfo
+    {
+        PatientId = "SYNC01",
+        PatientName = "동기화테스트",
+        Modality = "OT",
+        StudyDate = new DateTime(2026, 8, 6),
+    }, [demo.EncodedBytes]);
+
+    var uploaded = Pump(ShDicomStudio.App.Services.ServerClient.UploadStudyAsync(record));
+    Console.WriteLine($"업로드: {(uploaded ? "성공" : "실패")}");
+
+    var found = Pump(ShDicomStudio.App.Services.ServerClient.SearchStudiesAsync("SYNC01", null, null, null, null));
+    Console.WriteLine($"서버 검색: {found?.Count ?? -1}건 — {found?.FirstOrDefault()?.PatientName}");
+    return;
+}
+
 Window win = which == "login" ? new LoginWindow() : new MainWindow { DataContext = vm };
 if (width is int ww) win.Width = ww;
 if (height is int hh) win.Height = hh;

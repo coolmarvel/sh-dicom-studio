@@ -21,10 +21,12 @@ status: active
 - [x] 앱 시작 시 로그인 창 — [오프라인으로 계속] 허용, 창 닫으면 종료
 - [x] 서버 주소 입력(로그인 창) — 기본 `http://localhost:8080`
 
-## S3 — 검사 메타데이터 서버화
+## S3 — 검사 메타데이터 서버화 (핵심 완료 2026-08-06)
 
-- [ ] `POST /api/studies` — SaveDB 시 검사 메타 업로드 (파일은 아직 로컬)
-- [ ] `GET /api/studies?patientId=…` — FindDB 에 서버 검색 탭
+- [x] `POST /api/studies` (JWT 보호, StudyUid upsert) — SaveDB/업데이트/InsExam 시 자동 업로드
+      (오프라인이면 건너뜀 — 로컬 저장이 항상 우선). 함정: Oracle 바인드 변수명에 예약어
+      (`:uid` `:ref` `:mod`) 금지 — ORA-01745.
+- [x] `GET /api/studies?…` — FindDB 에 "서버에서 검색" 체크(조회 전용, 로그인 필요)
 - [ ] 사용자 계정 관리 최소 (admin 이 사용자 추가)
 
 ## S4 — 다음 단계 연결

@@ -11,6 +11,20 @@ domain: development
 
 블록 형식: `## YYYY-MM-DD — 제목` 아래에 **요청/피드백 → 수정 → 검증 → 다음** 순서로 간결하게.
 
+## 2026-08-06 — S3: 검사 메타 서버 동기화 v0.1.10
+
+- **수정**:
+  - 서버 `StudyStore` + `POST/GET /api/studies` (JWT RequireAuthorization, StudyUid MERGE
+    upsert, 최대 200건). **함정: Oracle 바인드 변수명 예약어(:uid/:ref/:mod) → ORA-01745** —
+    suid/refp/moda 로 회피.
+  - 클라 `ServerClient.UploadStudyAsync/SearchStudiesAsync` (Bearer). SaveDB·업데이트·InsExam
+    후 자동 업로드(실패해도 로컬 저장 유효, 상태바에 동기화 결과 표기).
+  - FindDB "서버에서 검색" 체크 — 조회 전용(열기/삭제/내보내기 차단 안내), 로그인 시에만 활성.
+- **검증**: build/test 34/34/format ✅ · 라이브: 401(무인증)→200 업로드→upsert→검색 ✅ ·
+  synctest E2E(클라 로그인→로컬 저장→업로드→서버 검색 1건) ✅ · 스모크 ✅ →
+  인스톨러 0.1.10 바탕화면 교체.
+- **다음**: S3 잔여(계정 관리) · 3차 준비(Orthanc + DICOM 전송 모달 — PPW 참고 설계 기록됨).
+
 ## 2026-08-06 — PPW 5.1 차용: JPG 오버레이 내보내기 + 우클릭 메뉴 v0.1.9
 
 - **자료**: 사용자가 PPW 5.1(메디컬스탠다드 PACS) 매뉴얼 PDF 2건 제공 (루트, gitignore).

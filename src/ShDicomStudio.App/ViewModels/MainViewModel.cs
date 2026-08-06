@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using ShDicomStudio.App.Services;
 using ShDicomStudio.Core.Database;
 using ShDicomStudio.Core.Dicom;
 using ShDicomStudio.Core.Imaging;
@@ -289,6 +290,7 @@ public partial class MainViewModel : ViewModelBase
         foreach (var item in Images)
             item.IsFromDb = true;
         StatusText = $"검사 업데이트 완료 — 현재 화면 그대로 {images.Count}장";
+        await SyncToServerAsync(db, studyId);
         return images.Count;
     }
 
@@ -314,6 +316,7 @@ public partial class MainViewModel : ViewModelBase
         foreach (var item in newItems)
             item.IsFromDb = true; // 중복 추가 방지
         StatusText = $"기존 검사에 {added}장 추가 저장됨 (같은 Study·새 Series)";
+        await SyncToServerAsync(db, studyId);
         return added;
     }
 
@@ -407,7 +410,24 @@ public partial class MainViewModel : ViewModelBase
         var record = await Task.Run(() => db.SaveStudy(info, images));
 
         StatusText = $"로컬 DB 저장 완료 — {record.ImageCount}장 (FindDB 로 검색)";
+        await SyncToServerAsync(record);
         if (Exam.AutoClear) Exam.Clear();
         return record.ImageCount;
+    }
+
+    /// <summary>로그인 상태면 검사 메타를 서버에도 올린다 (S3) — 실패해도 로컬 저장은 유효.</summary>
+    private async Task SyncToServerAsync(StudyRecord record)
+    {
+        if (!AppSession.IsOnline) return;
+        var ok = await ServerClient.UploadStudyAsync(record);
+        StatusText += ok ? " · 서버 동기화됨" : " · 서버 동기화 실패(로컬은 저장됨)";
+    }
+
+    private async Task SyncToServerAsync(LocalDatabase db, long studyId)
+    {
+        if (!AppSession.IsOnline) return;
+        var record = await Task.Run(() => db.Search().FirstOrDefault(r => r.Id == studyId));
+        if (record is not null)
+            await SyncToServerAsync(record);
     }
 }

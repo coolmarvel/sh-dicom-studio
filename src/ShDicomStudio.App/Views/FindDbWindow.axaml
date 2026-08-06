@@ -43,6 +43,12 @@
             </Grid>
         </Border>
 
+        <!-- 검색 대상 전환 — 서버(Oracle)는 조회 전용 (로그인 상태에서만) -->
+        <CheckBox DockPanel.Dock="Top" Margin="2,0,0,8" FontSize="12"
+                  IsChecked="{Binding SearchServer}"
+                  IsEnabled="{Binding CanSearchServer}"
+                  Content="서버에서 검색 (Oracle — 조회 전용, 로그인 필요)"/>
+
         <!-- 하단 버튼 -->
         <DockPanel DockPanel.Dock="Bottom" Margin="0,10,0,0">
             <TextBlock DockPanel.Dock="Left" Text="{Binding CountText}"
