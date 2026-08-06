@@ -11,6 +11,27 @@ domain: development
 
 블록 형식: `## YYYY-MM-DD — 제목` 아래에 **요청/피드백 → 수정 → 검증 → 다음** 순서로 간결하게.
 
+## 2026-08-06 — M3 완료: DICOM 변환·저장 + 자동 레이아웃 v0.1.3
+
+- **요청**: M3 진행 + 피드백 3건 — 장수 자동 그리드(2→2×1, 3→3×1, 4+→2×2 등 보기 좋게),
+  날짜 픽커의 '6' 을 달력 아이콘으로, 페이지 배지(1/2)와 화살표 높이 정렬.
+- **수정**:
+  - Core `Dicom/DicomStudy`+`ExamInfo` — Secondary Capture 생성. UID 규칙: 저장 1회 =
+    Study/Series 1쌍, 이미지별 SOP UID·InstanceNumber. RGB 8bit, ConversionType WSD,
+    SpecificCharacterSet ISO_IR 192(한글). 나이는 DICOM AS("045Y") 포맷.
+  - VM `SaveDicomAsync` — 선택(없으면 전체) → 폴더 픽커 → `<PatientID>_00001.dcm`.
+    검증(ValidateForSave): 이미지 유무·PatientID/익명. AutoClear 반영. 저장 버튼·SaveAs 타일 활성화.
+  - `AutoLayout()` — 장수→(1×1/2×1/3×1/2×2/3×2/3×3/4×3/4×4), Open 시 자동 적용.
+  - 날짜 픽커: Fluent 기본 버튼이 '오늘 날짜 숫자가 든 미니 달력'이라 숫자로 보임 →
+    `PART_Button` Template 을 mdi 달력 아이콘으로 교체 (Content 설정으로는 안 먹힘 — 함정).
+  - 툴바 버튼·페이지 배지 높이 30 통일 정렬.
+  - ShotTool: `loadedN` 장면(자동 레이아웃 확인)·`savetest`(저장 E2E — 헤드리스는 디스패처
+    수동 펌프 필요) 추가.
+- **검증**: build ✅ · test 23/23 ✅ (DicomStudyTests: 태그·UID 규칙·익명·라운드트립 색상) ·
+  format ✅ · 스모크 ✅ · ShotTool 캡처(2장→2×1, 4장→2×2, 달력 아이콘) ✅ ·
+  savetest E2E: 2장 저장 → 재판독 800×1000 일치 ✅ → 인스톨러 0.1.3 바탕화면 교체.
+- **다음**: 사용자 실기 테스트(실제 PACS 뷰어로 dcm 열어보기 권장) → M4 로컬 DB.
+
 ## 2026-08-06 — 이미지 규격 버그 수정 + 썸네일 제거 v0.1.2
 
 - **피드백**: 확대 안 했는데 이미지가 셀 규격에 안 맞음(스크린샷 — feedback-archive 보관).

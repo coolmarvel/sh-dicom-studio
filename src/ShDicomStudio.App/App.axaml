@@ -72,11 +72,28 @@
             <Setter Property="HorizontalAlignment" Value="Center"/>
         </Style>
 
-        <!-- 뷰어 상단 툴바 버튼 -->
+        <!-- 뷰어 상단 툴바 버튼 — 페이지 배지와 높이·정렬을 맞추기 위해 높이 고정 -->
         <Style Selector="Button.toolbar">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Padding" Value="8,5"/>
+            <Setter Property="Padding" Value="8,0"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="CornerRadius" Value="6"/>
+        </Style>
+
+        <!-- CalendarDatePicker 드롭 버튼 — Fluent 기본은 '오늘 날짜 숫자가 든 미니 달력'을
+             직접 그려서 작게 보면 숫자만 보인다('6'). 알아보기 쉬운 달력 아이콘으로 Template 교체
+             (2026-08-06 사용자 피드백). Content 설정으로는 안 됨 — 버튼 ControlTheme 이 무시한다. -->
+        <Style Selector="CalendarDatePicker /template/ Button#PART_Button">
+            <Setter Property="Width" Value="24"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <i:Icon Value="mdi-calendar-month" FontSize="16"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Foreground="{StaticResource TileIconBrush}"/>
+                </ControlTemplate>
+            </Setter>
         </Style>
         <Style Selector="Button.toolbar:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>

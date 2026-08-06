@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using ShDicomStudio.Core.Dicom;
 using ShDicomStudio.Core.Imaging;
 
 namespace ShDicomStudio.App.ViewModels;
@@ -67,9 +69,27 @@ public partial class MainViewModel : ViewModelBase
         }
 
         SelectedImage ??= Images.FirstOrDefault();
+        AutoLayout();
         StatusText = skipped == 0
             ? $"{supported.Count}장 불러옴"
             : $"{supported.Count}장 불러옴 (미지원 파일 {skipped}개 건너뜀)";
+    }
+
+    /// <summary>장수에 따라 보기 편한 그리드를 자동 선택 (수동 픽커로 언제든 변경 가능).</summary>
+    public void AutoLayout()
+    {
+        var (rows, cols) = Images.Count switch
+        {
+            <= 1 => (1, 1),
+            2 => (1, 2),   // 2×1
+            3 => (1, 3),   // 3×1
+            4 => (2, 2),
+            <= 6 => (2, 3),
+            <= 9 => (3, 3),
+            <= 12 => (3, 4),
+            _ => (4, 4),
+        };
+        SetLayout(rows, cols);
     }
 
     /// <summary>셀 클릭 — 선택 토글 + 상태바 대상 갱신 (Paste 대상으로도 쓰인다).</summary>
@@ -215,6 +235,60 @@ public partial class MainViewModel : ViewModelBase
         SelectedImage = null;
         _cutBuffer = [];
         Images.Clear();
+        SetLayout(1, 1);
         StatusText = IdleStatus;
+    }
+
+    // ── DICOM 저장 (M3) — 선택된 이미지, 없으면 전체 ────────────────
+
+    /// <summary>저장 가능 여부 사전 검증. 문제가 있으면 StatusText 로 알리고 false.</summary>
+    public bool ValidateForSave()
+    {
+        if (Images.Count == 0)
+        {
+            StatusText = "저장할 이미지가 없습니다 — [Open]으로 먼저 불러오세요";
+            return false;
+        }
+        if (!Exam.IsAnonymous && string.IsNullOrWhiteSpace(Exam.PatientId))
+        {
+            StatusText = "Patient ID 를 입력하거나 [익명 환자]를 체크하세요";
+            return false;
+        }
+        return true;
+    }
+
+    public async Task SaveDicomAsync(string folder)
+    {
+        var targets = SelectedItems() is { Count: > 0 } sel ? sel : Images.ToList();
+
+        var info = new ExamInfo
+        {
+            PatientId = Exam.PatientId.Trim(),
+            PatientName = Exam.PatientName.Trim(),
+            Sex = Exam.Sex,
+            Age = Exam.Age.Trim(),
+            Modality = Exam.Modality,
+            StudyDate = Exam.StudyDate,
+            BirthDate = Exam.BirthDate,
+            StudyDescription = Exam.StudyDescription.Trim(),
+            AccessionNumber = Exam.AccessionNumber.Trim(),
+            ReferringPhysician = Exam.ReferringPhysician.Trim(),
+            Comment = Exam.Comment.Trim(),
+            Anonymous = Exam.IsAnonymous,
+        };
+
+        var prefix = info.Anonymous || info.PatientId.Length == 0 ? "IMG" : info.PatientId;
+        var study = new DicomStudy();
+        var saved = 0;
+        foreach (var item in targets)
+        {
+            var number = saved + 1;
+            var path = Path.Combine(folder, $"{prefix}_{number:00000}.dcm");
+            await Task.Run(() => study.Create(item.EncodedBytes, info, number).Save(path));
+            saved++;
+        }
+
+        StatusText = $"{saved}장 DICOM 저장 완료 → {folder}";
+        if (Exam.AutoClear) Exam.Clear();
     }
 }

@@ -12,10 +12,9 @@ domain: development
 
 ## P1 — 다음 릴리스에서 다뤄야 함
 
-- [ ] **M3: DICOM 변환·저장** (`docs/plans/0001-mvp.md`)
-  - 환자·검사 정보 입력 패널 (좌측 Information 자리에)
-  - fo-dicom Secondary Capture 생성 — UID 발급 규칙 확정 (테스트 `DicomLoadTests` 의 생성 코드가 출발점)
-  - Save As + 라운드트립 검증
+- [ ] **M4: 로컬 DB (SQLite)** (`docs/plans/0001-mvp.md`) — SaveDB/FindDB/InsExam 버튼 활성화
+  - Study/Image 스키마 + 저장·검색·다시 열기·삭제
+  - 옵션 화면 (저장 폴더·기본 Modality·기본 레이아웃)
 
 ## P2 — 가까운 로드맵
 - [ ] M4 로컬 DB (SQLite SaveDB/FindDB) + 옵션 화면

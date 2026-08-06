@@ -2,7 +2,7 @@
 ; 저작자/라이센스: 이성현 (SeongHyun Lee). 설치 시 라이센스 동의 페이지에 표시된다.
 
 #define MyAppName "sh DICOM Studio"
-#define MyAppVersion "0.1.2"
+#define MyAppVersion "0.1.3"
 #define MyAppPublisher "SeongHyun Lee"
 #define MyAppExeName "ShDicomStudio.App.exe"
 

@@ -59,6 +59,23 @@ public partial class MainWindow : Window
 
     private void OnExitClick(object? sender, RoutedEventArgs e) => Close();
 
+    // DICOM 저장 — 검증 통과 시 폴더를 고르게 하고 VM 에 위임.
+    private async void OnSaveClick(object? sender, RoutedEventArgs e)
+    {
+        if (ViewModel is not { } vm || !vm.ValidateForSave()) return;
+
+        var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            Title = "DICOM 저장 폴더 선택",
+            AllowMultiple = false,
+        });
+
+        if (folders.Count == 0) return;
+        if (folders[0].TryGetLocalPath() is not { } folder) return;
+
+        await vm.SaveDicomAsync(folder);
+    }
+
     private void OnCellPressed(object? sender, PointerPressedEventArgs e)
     {
         if (sender is Border { DataContext: ImageItemViewModel item })

@@ -33,14 +33,16 @@ int? height = args.Length > 3 && int.TryParse(args[3], out var h) ? h : null;
 
 var vm = new MainViewModel();
 
-if (which == "loaded")
+if (which.StartsWith("loaded"))
 {
+    // "loaded" = 3장, "loaded4" 처럼 숫자를 붙이면 그 장수로 (자동 레이아웃 확인용)
+    var count = int.TryParse(which["loaded".Length..], out var c) ? c : 3;
     var dir = Directory.CreateTempSubdirectory("shdicom-shot").FullName;
-    var paths = CreateDemoImages(dir);
+    var paths = CreateDemoImages(dir, count);
     foreach (var p in paths)
         vm.Images.Add(new ImageItemViewModel(ImageLoader.Load(p)));
 
-    vm.SetLayout(rows: 1, cols: 2);
+    vm.AutoLayout(); // 장수 기반 자동 그리드 — 실제 Open 흐름과 동일
     vm.Images[0].IsSelected = true;
     vm.SelectedImage = vm.Images[0];
 
@@ -51,6 +53,31 @@ if (which == "loaded")
     vm.Exam.Age = "45";
     vm.Exam.Modality = "OT";
     vm.Exam.StudyDescription = "동맥경화도검사";
+}
+
+// savetest: 화면 캡처 대신 저장 파이프라인 E2E — 이미지 2장을 DICOM 으로 저장하고 재판독한다.
+if (which == "savetest")
+{
+    var dir = Directory.CreateTempSubdirectory("shdicom-save").FullName;
+    foreach (var p in CreateDemoImages(dir, 2))
+        vm.Images.Add(new ImageItemViewModel(ImageLoader.Load(p)));
+    vm.Exam.PatientId = "20260001";
+    vm.Exam.PatientName = "홍길동";
+    vm.Exam.Modality = "OT";
+
+    var outDir = Directory.CreateTempSubdirectory("shdicom-save-out").FullName;
+    if (!vm.ValidateForSave()) { Console.WriteLine("FAIL: validate"); return; }
+    // 헤드리스에는 도는 디스패처 루프가 없어 await 가 재개되지 않는다 — 완료까지 수동 펌프.
+    var saveTask = vm.SaveDicomAsync(outDir);
+    while (!saveTask.IsCompleted) { Dispatcher.UIThread.RunJobs(); Thread.Sleep(10); }
+    saveTask.GetAwaiter().GetResult();
+    Console.WriteLine(vm.StatusText);
+    foreach (var f in Directory.GetFiles(outDir, "*.dcm").Order())
+    {
+        var reloaded = ImageLoader.Load(f);
+        Console.WriteLine($"{Path.GetFileName(f)} → 재판독 {reloaded.Width}×{reloaded.Height}");
+    }
+    return;
 }
 
 var win = new MainWindow { DataContext = vm };
@@ -65,7 +92,7 @@ frame?.Save(outPath);
 Console.WriteLine($"saved: {outPath} ({frame?.PixelSize})");
 
 // 검사결과지 느낌의 데모 이미지 — 그라데이션 + 격자 + 색 블록 (텍스트 없음).
-static List<string> CreateDemoImages(string dir)
+static List<string> CreateDemoImages(string dir, int count)
 {
     var paths = new List<string>();
     var palettes = new[]
@@ -73,10 +100,11 @@ static List<string> CreateDemoImages(string dir)
         (new Rgba32(236, 244, 255, 255), new Rgba32(61, 107, 245, 255)),
         (new Rgba32(255, 244, 236, 255), new Rgba32(234, 88, 12, 255)),
         (new Rgba32(240, 253, 244, 255), new Rgba32(22, 163, 74, 255)),
+        (new Rgba32(250, 245, 255, 255), new Rgba32(147, 51, 234, 255)),
     };
-    for (var n = 0; n < palettes.Length; n++)
+    for (var n = 0; n < count; n++)
     {
-        var (bg, fg) = palettes[n];
+        var (bg, fg) = palettes[n % palettes.Length];
         using var img = new Image<Rgba32>(800, 1000, bg);
         FillRect(img, fg, 40, 40, 720, 24);
         FillRect(img, Blend(bg, fg, 0.35), 40, 120, 340, 200);
