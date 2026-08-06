@@ -25,3 +25,5 @@ obj/
 *.user
 publish/
 release/
+installer/Output/
+installer/LICENSE.txt

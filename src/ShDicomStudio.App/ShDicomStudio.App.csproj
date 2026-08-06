@@ -4,6 +4,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- exe 아이콘 (작업표시줄·탐색기) -->
+    <ApplicationIcon>Assets/appicon.ico</ApplicationIcon>
     <!-- 저작자/라이센스 메타데이터 — 탐색기 '속성 > 자세히'와 인스톨러에 노출된다. -->
     <Product>sh DICOM Studio</Product>
     <Authors>SeongHyun Lee</Authors>

@@ -8,6 +8,7 @@
         x:Class="ShDicomStudio.App.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Title="sh DICOM Studio"
+        Icon="avares://ShDicomStudio.App/Assets/appicon.ico"
         Width="1200" Height="800">
 
     <Design.DataContext>

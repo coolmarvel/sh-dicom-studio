@@ -14,7 +14,7 @@ domain: packaging
 
 | OS | 파일 | 상태 |
 |---|---|---|
-| Windows | `sh-dicom-studio-Setup-<버전>.exe` (Inno Setup) | 파이프라인 검증됨 (sh-ip-scanner) |
+| Windows | `sh-dicom-studio-Setup-<버전>.exe` (Inno Setup) | **✅ 이 프로젝트에서 검증** (2026-08-06, v0.1.0 — WSL+wine 컴파일, 바탕화면 전달) |
 | macOS | `sh-dicom-studio-<버전>-arm64.dmg` / `-x64.dmg` | `[?]` M5 에서 검증 (맥 실기 필요) |
 | Linux | `sh-dicom-studio-<버전>-x86_64.AppImage` | `[?]` M5 에서 검증 |
 

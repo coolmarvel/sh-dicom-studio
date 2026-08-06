@@ -11,6 +11,20 @@ domain: development
 
 블록 형식: `## YYYY-MM-DD — 제목` 아래에 **요청/피드백 → 수정 → 검증 → 다음** 순서로 간결하게.
 
+## 2026-08-06 — 앱 아이콘 + Windows 인스톨러 v0.1.0 (M5 일부 선행)
+
+- **요청**: 사용자가 실기 테스트를 위해 인스톨러 요청 + "아이콘 멋있게".
+- **수정**:
+  - 아이콘 신규 제작 (Pillow 슈퍼샘플링 스크립트) — 네이비→시안 그라데이션, 스캔 프레임 +
+    펄스 라인 + 필름 스트립 모티프. `Assets/appicon.{ico,png}` (ico 는 16~256px 멀티사이즈).
+    csproj `ApplicationIcon` + MainWindow `Icon` 연결, 템플릿 잔재 avalonia-logo.ico 삭제.
+  - `installer/sh-dicom-studio.iss` — sh-ip-scanner 검증본 기반 (AppId GUID 신규 고정
+    `3A5431A2-…`, 한국어 UI, 라이센스 동의 페이지 = LICENSE UTF-8 BOM 사본, VersionInfo 저작권).
+  - `.gitignore` 에 `installer/Output/`·`installer/LICENSE.txt` 추가.
+- **검증**: Release build/test 19/19 ✅ → `dotnet publish` win-x64 자체포함 단일파일(82MB) →
+  wine ISCC 컴파일 성공 → `sh-dicom-studio-Setup-0.1.0.exe`(33MB) **바탕화면 전달** ✅
+- **다음**: 사용자 실기 테스트 피드백 대기 · M3 (환자정보 + DICOM 변환·저장).
+
 ## 2026-08-06 — M2 완료: 그리드 뷰어 + Image Tools + DICOM 열기
 
 - **요청**: 레포 생성(사용자가 `gh repo create` 직접 실행 — 분류기 차단 때문) 후 M2 진행.
