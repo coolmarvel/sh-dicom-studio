@@ -11,6 +11,17 @@ domain: development
 
 블록 형식: `## YYYY-MM-DD — 제목` 아래에 **요청/피드백 → 수정 → 검증 → 다음** 순서로 간결하게.
 
+## 2026-08-06 — 로그인 창 개편 (PPW DB Config) v0.1.11
+
+- **피드백**: PPW 로그인 스크린샷 4장 — 이미지 패널 제거, 서버(DB Config) 전환 가능하게,
+  CHANGE PW 제거. → feedback-archive/2026-08-06-로그인-개편/
+- **수정**: `ServerConfigStore`(servers.json, 마지막 선택 기억) · `ServerConfigWindow`
+  (이름+URL 목록 관리, 작업 사본 편집 후 [확인] 저장) · LoginWindow 재작성 — 서버 콤보의
+  "서버 설정…" 항목으로 모달 진입, 버전 표기, 종료(EXIT) 버튼.
+- **검증**: build/test 34/34/format ✅ · ShotTool 캡처(login·dbconfig) 눈 확인 ✅ · 스모크 ✅ →
+  인스톨러 0.1.11 바탕화면 교체.
+- **다음**: 3차(Orthanc + DICOM 전송) 또는 S3 잔여(계정 관리) — 사용자 방향 대기.
+
 ## 2026-08-06 — S3: 검사 메타 서버 동기화 v0.1.10
 
 - **수정**:

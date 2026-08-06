@@ -151,7 +151,12 @@ if (which == "synctest")
     return;
 }
 
-Window win = which == "login" ? new LoginWindow() : new MainWindow { DataContext = vm };
+Window win = which switch
+{
+    "login" => new LoginWindow(),
+    "dbconfig" => new ServerConfigWindow(ShDicomStudio.App.Services.ServerConfigStore.Load()),
+    _ => new MainWindow { DataContext = vm },
+};
 if (width is int ww) win.Width = ww;
 if (height is int hh) win.Height = hh;
 
