@@ -1,4 +1,6 @@
 using Avalonia;
+using Projektanker.Icons.Avalonia;
+using Projektanker.Icons.Avalonia.MaterialDesign;
 using System;
 
 namespace ShDicomStudio.App;
@@ -12,8 +14,11 @@ sealed class Program
 
     // Avalonia 설정 — 비주얼 디자이너도 이 메서드를 사용한다.
     public static AppBuilder BuildAvaloniaApp()
-        => AppBuilder.Configure<App>()
+    {
+        IconProvider.Current.Register<MaterialDesignIconProvider>();
+        return AppBuilder.Configure<App>()
             .UsePlatformDetect()
             .WithInterFont()
             .LogToTrace();
+    }
 }

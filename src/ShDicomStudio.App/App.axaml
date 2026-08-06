@@ -2,14 +2,84 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="ShDicomStudio.App.App"
              xmlns:local="using:ShDicomStudio.App"
-             RequestedThemeVariant="Default">
-    <!-- RequestedThemeVariant "Default" 는 OS 테마를 따른다. "Dark"/"Light" 로 고정 가능. -->
+             xmlns:i="https://github.com/projektanker/icons.avalonia"
+             RequestedThemeVariant="Light">
+    <!-- 밝은 크롬(사이드바) + 어두운 뷰어 조합 — 사용자 피드백(2026-08-06): 전부 어두우면 글씨가 안 보인다. -->
 
     <Application.DataTemplates>
         <local:ViewLocator/>
     </Application.DataTemplates>
 
+    <Application.Resources>
+        <!-- 팔레트 (Electron 판 DICOM Studio 와 동일 계열) -->
+        <SolidColorBrush x:Key="AccentBrush" Color="#3D6BF5"/>
+        <SolidColorBrush x:Key="AccentSoftBrush" Color="#EEF2FF"/>
+        <SolidColorBrush x:Key="SidebarBrush" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="ChromeBrush" Color="#F5F6FA"/>
+        <SolidColorBrush x:Key="RuleBrush" Color="#E5E8EF"/>
+        <SolidColorBrush x:Key="SectionTitleBrush" Color="#8A93A6"/>
+        <SolidColorBrush x:Key="BodyTextBrush" Color="#374151"/>
+        <SolidColorBrush x:Key="MutedTextBrush" Color="#8A93A6"/>
+        <SolidColorBrush x:Key="TileIconBrush" Color="#4B5563"/>
+        <SolidColorBrush x:Key="ViewerBgBrush" Color="#0E1526"/>
+    </Application.Resources>
+
     <Application.Styles>
         <FluentTheme />
+
+        <!-- 섹션 제목 (MAIN TOOLS / EXAM INFORMATION / IMAGE TOOLS) -->
+        <Style Selector="TextBlock.section">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="LetterSpacing" Value="1.2"/>
+            <Setter Property="Foreground" Value="{StaticResource SectionTitleBrush}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- 입력 필드 라벨 -->
+        <Style Selector="TextBlock.field">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{StaticResource BodyTextBrush}"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+
+        <!-- 아이콘 타일 버튼 (도구 묶음) -->
+        <Style Selector="Button.tile">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="0,7,0,5"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.tile:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+        </Style>
+        <Style Selector="Button.tile:disabled">
+            <Setter Property="Opacity" Value="0.35"/>
+        </Style>
+        <Style Selector="Button.tile StackPanel">
+            <Setter Property="Spacing" Value="3"/>
+        </Style>
+        <Style Selector="Button.tile i|Icon">
+            <Setter Property="FontSize" Value="19"/>
+            <Setter Property="Foreground" Value="{StaticResource TileIconBrush}"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.tile TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- 뷰어 상단 툴바 버튼 -->
+        <Style Selector="Button.toolbar">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Padding" Value="8,5"/>
+            <Setter Property="CornerRadius" Value="6"/>
+        </Style>
+        <Style Selector="Button.toolbar:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+        </Style>
     </Application.Styles>
 </Application>

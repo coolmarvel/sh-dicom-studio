@@ -11,6 +11,24 @@ domain: development
 
 블록 형식: `## YYYY-MM-DD — 제목` 아래에 **요청/피드백 → 수정 → 검증 → 다음** 순서로 간결하게.
 
+## 2026-08-06 — UI 전면 개편 v0.1.1 (사용자 피드백 반영)
+
+- **피드백**: 스크린샷 비교(Electron 판 vs v0.1.0) — 조잡·어두워서 안 보임·바둑판 픽커 없음·
+  라이센스 미노출·도구 그룹 없음. + "매뉴얼(VPWinGate) 구성 그대로 구현할 것".
+  → `docs/feedback-archive/2026-08-06-ui-개편/처리내역.md`
+- **수정**:
+  - 라이트 크롬 + 다크 뷰어 테마 (App.axaml 팔레트·타일 버튼 스타일). Avalonia 11.2.2→11.2.8
+    (아이콘 라이브러리 Projektanker.Icons.Avalonia.MaterialDesign 요구).
+  - 사이드바 = VPWinGate Toolbar1 그대로: MAIN TOOLS 12버튼(미구현 비활성+예정 툴팁) ·
+    EXAM INFORMATION 전체 필드(ExamInfoViewModel — M3 의 DICOM 헤더 입력) · IMAGE TOOLS 16버튼.
+  - 바둑판 레이아웃 픽커 `Controls/LayoutPicker`(6×6 호버) — 툴바 Flyout. 콤보 제거.
+  - 하단: DICOM 저장 버튼(M3 예정 비활성) + 제작·저작권 표기. 뷰어 빈 상태 안내 문구.
+  - `tools/ShotTool` 신설 (sh-ip-scanner 방식 이식) — 헤드리스 캡처로 UI 를 직접 확인하며 다듬음.
+  - VPWinGate_Manual.pdf 를 프로젝트 루트에 참고용으로 보관 (gitignore — 매뉴얼 저작권).
+- **검증**: build ✅ · test 19/19 ✅ · format ✅ · 실행 스모크 ✅ · ShotTool 캡처 눈 확인 ✅ →
+  인스톨러 0.1.1 재빌드, 바탕화면 교체(0.1.0 제거).
+- **다음**: 사용자 실기 확인 → M3 (저장 버튼 활성화가 목표).
+
 ## 2026-08-06 — 앱 아이콘 + Windows 인스톨러 v0.1.0 (M5 일부 선행)
 
 - **요청**: 사용자가 실기 테스트를 위해 인스톨러 요청 + "아이콘 멋있게".

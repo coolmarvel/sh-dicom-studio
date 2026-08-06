@@ -16,7 +16,7 @@ public sealed record GridLayoutOption(string Label, int Rows, int Cols)
 
 public partial class MainViewModel : ViewModelBase
 {
-    private const string IdleStatus = "좌측 [열기]로 이미지를 불러오세요 (JPG/PNG/BMP/TIFF/DCM)";
+    private const string IdleStatus = "[Open]으로 이미지를 불러오세요 (JPG · PNG · BMP · TIFF · DCM)";
 
     /// <summary>전체 이미지 (페이지와 무관한 원본 순서 — DICOM 생성 순서가 된다).</summary>
     public ObservableCollection<ImageItemViewModel> Images { get; } = [];
@@ -24,18 +24,11 @@ public partial class MainViewModel : ViewModelBase
     /// <summary>현재 페이지에 표시되는 이미지.</summary>
     public ObservableCollection<ImageItemViewModel> PageImages { get; } = [];
 
-    public IReadOnlyList<GridLayoutOption> LayoutOptions { get; } =
-    [
-        new("1×1", 1, 1),
-        new("2×1", 1, 2),
-        new("3×1", 1, 3),
-        new("2×2", 2, 2),
-        new("3×3", 3, 3),
-        new("4×4", 4, 4),
-    ];
+    /// <summary>환자·검사 정보 (DICOM 헤더 입력값 — M3 에서 사용).</summary>
+    public ExamInfoViewModel Exam { get; } = new();
 
     [ObservableProperty]
-    private GridLayoutOption _selectedLayout;
+    private GridLayoutOption _selectedLayout = new("1×1", 1, 1);
 
     [ObservableProperty]
     private int _currentPage = 1;
@@ -49,12 +42,17 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     private string _statusText = IdleStatus;
 
+    [ObservableProperty]
+    private string _countText = "이미지 0장 · 선택 0장";
+
+    [ObservableProperty]
+    private bool _hasImages;
+
     private List<ImageItemViewModel> _cutBuffer = [];
 
     public MainViewModel()
     {
-        _selectedLayout = LayoutOptions[0]; // 1×1 로 시작 (VPWinGate 기본은 3×1 — 옵션 화면(M4)에서 설정화)
-        Images.CollectionChanged += (_, _) => RefreshPage();
+        Images.CollectionChanged += (_, _) => { RefreshPage(); RefreshCounts(); };
     }
 
     public async Task LoadImagesAsync(IReadOnlyList<string> paths)
@@ -70,8 +68,8 @@ public partial class MainViewModel : ViewModelBase
 
         SelectedImage ??= Images.FirstOrDefault();
         StatusText = skipped == 0
-            ? $"총 {Images.Count}장"
-            : $"총 {Images.Count}장 (미지원 파일 {skipped}개 건너뜀)";
+            ? $"{supported.Count}장 불러옴"
+            : $"{supported.Count}장 불러옴 (미지원 파일 {skipped}개 건너뜀)";
     }
 
     /// <summary>셀 클릭 — 선택 토글 + 상태바 대상 갱신 (Paste 대상으로도 쓰인다).</summary>
@@ -79,9 +77,22 @@ public partial class MainViewModel : ViewModelBase
     {
         item.IsSelected = !item.IsSelected;
         SelectedImage = item;
+        RefreshCounts();
+    }
+
+    /// <summary>바둑판 픽커에서 레이아웃 선택 (라벨은 VPWinGate 관례대로 열×행).</summary>
+    public void SetLayout(int rows, int cols)
+    {
+        SelectedLayout = new GridLayoutOption($"{cols}×{rows}", rows, cols);
     }
 
     private List<ImageItemViewModel> SelectedItems() => Images.Where(i => i.IsSelected).ToList();
+
+    private void RefreshCounts()
+    {
+        CountText = $"이미지 {Images.Count}장 · 선택 {Images.Count(i => i.IsSelected)}장";
+        HasImages = Images.Count > 0;
+    }
 
     // ── 페이지/레이아웃 ──────────────────────────────────────────────
 
@@ -122,6 +133,7 @@ public partial class MainViewModel : ViewModelBase
         var allSelected = PageImages.Count > 0 && PageImages.All(i => i.IsSelected);
         foreach (var item in PageImages)
             item.IsSelected = !allSelected;
+        RefreshCounts();
     }
 
     // ── Image Tools (선택된 이미지에 적용) ───────────────────────────
@@ -160,7 +172,7 @@ public partial class MainViewModel : ViewModelBase
             if (SelectedImage == item) SelectedImage = null;
         }
         _cutBuffer = _cutBuffer.Where(Images.Contains).ToList();
-        StatusText = $"{targets.Count}장 삭제됨 · 총 {Images.Count}장";
+        StatusText = $"{targets.Count}장 삭제됨";
     }
 
     // ── 순서 변경: Cut & Paste (VPWinGate 3.2.17) ────────────────────
@@ -171,7 +183,7 @@ public partial class MainViewModel : ViewModelBase
         _cutBuffer = SelectedItems();
         StatusText = _cutBuffer.Count == 0
             ? "잘라낼 이미지를 먼저 선택하세요"
-            : $"{_cutBuffer.Count}장 잘라둠 — 대상 이미지를 클릭한 뒤 [붙여넣기]";
+            : $"{_cutBuffer.Count}장 잘라둠 — 대상 이미지를 클릭한 뒤 [Paste]";
     }
 
     [RelayCommand]
@@ -179,7 +191,7 @@ public partial class MainViewModel : ViewModelBase
     {
         if (_cutBuffer.Count == 0)
         {
-            StatusText = "잘라둔 이미지가 없습니다 — [잘라내기]부터";
+            StatusText = "잘라둔 이미지가 없습니다 — [Cut]부터";
             return;
         }
 

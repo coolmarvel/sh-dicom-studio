@@ -80,7 +80,8 @@ dotnet run --project src/ShDicomStudio.App          # 앱 실행 (개발)
 dotnet build ShDicomStudio.sln                      # 빌드
 dotnet test ShDicomStudio.sln                       # 테스트
 dotnet format ShDicomStudio.sln --verify-no-changes # 포맷 검사 (자동 수정은 --verify 빼고)
-# 패키징(M5): docs/guides/packaging.md — dotnet publish + Inno Setup(wine)
+dotnet run --project tools/ShotTool -- out.png loaded # 헤드리스 UI 스크린샷 (장면: main|loaded)
+# 패키징: docs/guides/packaging.md — dotnet publish + Inno Setup(wine) → 바탕화면 전달
 ```
 
 ## 코드 지도 (수정 시 어디를 보나)
@@ -90,7 +91,8 @@ dotnet format ShDicomStudio.sln --verify-no-changes # 포맷 검사 (자동 수�
 | `src/ShDicomStudio.Core/` | UI 없는 도메인 로직 — DICOM 변환(fo-dicom)·로컬 DB(SQLite)·모델. **테스트 대상은 전부 여기로** |
 | `src/ShDicomStudio.App/` | Avalonia UI (MVVM). `Views/`(axaml) ↔ `ViewModels/`(CommunityToolkit.Mvvm) |
 | `tests/ShDicomStudio.Core.Tests/` | xUnit — Core 만 참조 (Avalonia 의존 금지) |
-| `installer/` | (M5) Inno Setup 스크립트 |
+| `installer/` | Inno Setup 스크립트 (WSL+wine 으로 컴파일 — packaging.md) |
+| `tools/ShotTool/` | 헤드리스 UI 스크린샷 도구 — **XAML 을 고치면 캡처로 눈 확인** |
 
 **새 기능 추가 체크리스트** = ① Core 에 모델·로직 ② Core.Tests 에 테스트 ③ ViewModel
 ④ View(axaml) ⑤ `docs/` 갱신(session-log·todo·필요시 guides).

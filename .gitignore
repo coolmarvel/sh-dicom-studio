@@ -27,3 +27,7 @@ publish/
 release/
 installer/Output/
 installer/LICENSE.txt
+
+# 참고 명세 (로컬 전용 — 배포 매뉴얼 저작권)
+VPWinGate_Manual.pdf
+스크린샷*.png

@@ -16,9 +16,21 @@ public partial class MainWindow : Window
         Patterns = ["*.jpg", "*.jpeg", "*.png", "*.bmp", "*.tif", "*.tiff", "*.dcm"],
     };
 
+    private readonly Flyout _layoutFlyout;
+
     public MainWindow()
     {
         InitializeComponent();
+
+        // 바둑판 레이아웃 픽커 — Flyout 내부 컨트롤은 XAML 이름 스코프가 닿지 않아 코드로 구성한다.
+        var picker = new LayoutPicker();
+        picker.Picked += (rows, cols) =>
+        {
+            ViewModel?.SetLayout(rows, cols);
+            _layoutFlyout?.Hide();
+        };
+        _layoutFlyout = new Flyout { Content = picker };
+        LayoutButton.Flyout = _layoutFlyout;
     }
 
     private MainViewModel? ViewModel => DataContext as MainViewModel;
@@ -45,6 +57,8 @@ public partial class MainWindow : Window
             await ViewModel.LoadImagesAsync(paths);
     }
 
+    private void OnExitClick(object? sender, RoutedEventArgs e) => Close();
+
     private void OnCellPressed(object? sender, PointerPressedEventArgs e)
     {
         if (sender is Border { DataContext: ImageItemViewModel item })
@@ -63,7 +77,7 @@ public partial class MainWindow : Window
         vm.SelectedImage = item;
     }
 
-    // Fit/실제크기/초기화 — 선택된 셀이 있으면 그 셀만, 없으면 화면의 모든 셀에 적용 (뷰 전용 동작이라 코드비하인드).
+    // Fit/Realsize/Reset — 선택된 셀이 있으면 그 셀만, 없으면 화면의 모든 셀에 적용 (뷰 전용 동작이라 코드비하인드).
     private void ApplyToViewers(System.Action<ImageViewer> action)
     {
         var viewers = this.GetVisualDescendants().OfType<ImageViewer>().ToList();
