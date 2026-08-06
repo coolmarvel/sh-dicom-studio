@@ -71,6 +71,61 @@ public partial class MainWindow : Window
 
     private void OnExitClick(object? sender, RoutedEventArgs e) => Close();
 
+    // Worklist — 예약 선택 → 환자정보 폼 자동 입력 (VPWinGate 3.5).
+    private async void OnWorklistClick(object? sender, RoutedEventArgs e)
+    {
+        if (!Services.AppSession.IsOnline)
+        {
+            await Dialogs.ShowAsync(this, "Worklist", "서버에 로그인해야 사용할 수 있습니다.");
+            return;
+        }
+
+        var picked = await new WorklistWindow().ShowDialog<Core.Dicom.ExamInfo?>(this);
+        if (picked is null || ViewModel is not { } vm) return;
+
+        vm.FillExam(picked);
+        vm.StatusText = $"Worklist 에서 불러옴 — {picked.PatientName} ({picked.PatientId})";
+    }
+
+    // Send/Multisend — 현재 화면을 임시 DICOM 으로 만들어 전송 (VPWinGate 3.2.8/3.2.9).
+    private async void OnSendTileClick(object? sender, RoutedEventArgs e) => await SendCurrentAsync(multi: false);
+
+    private async void OnMultisendTileClick(object? sender, RoutedEventArgs e) => await SendCurrentAsync(multi: true);
+
+    private async System.Threading.Tasks.Task SendCurrentAsync(bool multi)
+    {
+        try
+        {
+            if (ViewModel is not { } vm) return;
+            if (vm.ValidateForSave() is { } problem)
+            {
+                await Dialogs.ShowAsync(this, "검사 보내기", problem);
+                return;
+            }
+
+            var (paths, label) = await vm.BuildTempDicomAsync();
+            await new SendWindow(paths, label, multi).ShowDialog<bool?>(this);
+        }
+        catch (Exception ex)
+        {
+            Program.LogCrash(ex);
+            await Dialogs.ShowAsync(this, "검사 보내기 실패", $"전송 준비 중 오류가 발생했습니다.\n\n{ex}");
+        }
+    }
+
+    // 옵션 — 저장되면 현재 폼/레이아웃에도 반영.
+    private async void OnOptionClick(object? sender, RoutedEventArgs e)
+    {
+        var saved = await new OptionWindow().ShowDialog<bool?>(this);
+        if (saved == true && ViewModel is { } vm)
+        {
+            if (string.IsNullOrWhiteSpace(vm.Exam.PatientId))
+                vm.Exam.Modality = Services.AppSettingsStore.Current.DefaultModality;
+            vm.AutoLayout();
+            vm.StatusText = "옵션 저장됨";
+        }
+    }
+
     // 사용자 계정 관리 — 서버 로그인 + admin 계정에서만.
     private async void OnUsersClick(object? sender, RoutedEventArgs e)
     {

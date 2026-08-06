@@ -1,0 +1,92 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:i="https://github.com/projektanker/icons.avalonia"
+        x:Class="ShDicomStudio.App.Views.WorklistWindow"
+        Title="Worklist — 검사 예약 조회"
+        Icon="avares://ShDicomStudio.App/Assets/appicon.ico"
+        Width="820" Height="560"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource ChromeBrush}">
+
+    <DockPanel Margin="14">
+
+        <!-- 검색 조건 -->
+        <Border DockPanel.Dock="Top" Background="{StaticResource SidebarBrush}"
+                BorderBrush="{StaticResource RuleBrush}" BorderThickness="1"
+                CornerRadius="8" Padding="12" Margin="0,0,0,10">
+            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                <TextBlock Text="검사일" Classes="field" Margin="0" VerticalAlignment="Center"/>
+                <CalendarDatePicker Name="DatePicker" SelectedDateFormat="Custom"
+                                    CustomDateFormatString="yyyy-MM-dd" Width="150"/>
+                <TextBlock Text="Modality" Classes="field" Margin="0" VerticalAlignment="Center"/>
+                <ComboBox Name="ModalityCombo" MinWidth="90"/>
+                <Button Click="OnSearchClick" Background="{StaticResource AccentBrush}"
+                        Foreground="White" Padding="14,6">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <i:Icon Value="mdi-magnify" FontSize="14"/><TextBlock Text="조회"/>
+                    </StackPanel>
+                </Button>
+                <TextBlock Name="CountBlock" Foreground="{StaticResource MutedTextBrush}"
+                           FontSize="12" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 예약 등록 (실무에서는 RIS/EMR 이 만들지만, 여기서는 직접 접수) -->
+        <Border DockPanel.Dock="Bottom" Background="{StaticResource SidebarBrush}"
+                BorderBrush="{StaticResource RuleBrush}" BorderThickness="1"
+                CornerRadius="8" Padding="12" Margin="0,10,0,0">
+            <StackPanel Spacing="8">
+                <TextBlock Classes="section" Text="예약 등록 (접수)"/>
+                <Grid ColumnDefinitions="110,6,130,6,60,6,130,6,90,6,*,6,Auto" RowDefinitions="Auto">
+                    <TextBox Grid.Column="0" Name="NewPidBox" Watermark="환자 ID *"/>
+                    <TextBox Grid.Column="2" Name="NewNameBox" Watermark="이름 *"/>
+                    <ComboBox Grid.Column="4" Name="NewSexCombo" HorizontalAlignment="Stretch"/>
+                    <CalendarDatePicker Grid.Column="6" Name="NewBirthPicker" Watermark="생년월일"
+                                        SelectedDateFormat="Custom" CustomDateFormatString="yyyy-MM-dd"
+                                        HorizontalAlignment="Stretch"/>
+                    <ComboBox Grid.Column="8" Name="NewModalityCombo" HorizontalAlignment="Stretch"/>
+                    <TextBox Grid.Column="10" Name="NewDescBox" Watermark="검사 설명"/>
+                    <Button Grid.Column="12" Content="등록" Click="OnCreateClick" Padding="14,6"/>
+                </Grid>
+                <TextBlock Name="StatusBlock" FontSize="11" Foreground="#FFE53935"
+                           TextWrapping="Wrap" IsVisible="False"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 하단 버튼 -->
+        <DockPanel DockPanel.Dock="Bottom" Margin="0,10,0,0">
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                <Button Background="{StaticResource AccentBrush}" Foreground="White"
+                        Padding="16,7" Click="OnPickClick">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <i:Icon Value="mdi-account-arrow-down" FontSize="14"/>
+                        <TextBlock Text="선택 — 환자정보 입력"/>
+                    </StackPanel>
+                </Button>
+                <Button Padding="16,7" Click="OnDeleteClick" Content="예약 삭제"/>
+                <Button Padding="16,7" Click="OnCloseClick" Content="닫기"/>
+            </StackPanel>
+        </DockPanel>
+
+        <!-- 목록 -->
+        <Border Background="{StaticResource SidebarBrush}" BorderBrush="{StaticResource RuleBrush}"
+                BorderThickness="1" CornerRadius="8" Padding="4">
+            <DockPanel>
+                <Border DockPanel.Dock="Top" Padding="8,6" BorderBrush="{StaticResource RuleBrush}"
+                        BorderThickness="0,0,0,1">
+                    <Grid ColumnDefinitions="110,120,140,50,110,70,*,90">
+                        <TextBlock Grid.Column="0" Classes="field" Text="검사일" Margin="0"/>
+                        <TextBlock Grid.Column="1" Classes="field" Text="환자 ID" Margin="0"/>
+                        <TextBlock Grid.Column="2" Classes="field" Text="이름" Margin="0"/>
+                        <TextBlock Grid.Column="3" Classes="field" Text="성별" Margin="0"/>
+                        <TextBlock Grid.Column="4" Classes="field" Text="생년월일" Margin="0"/>
+                        <TextBlock Grid.Column="5" Classes="field" Text="Modality" Margin="0"/>
+                        <TextBlock Grid.Column="6" Classes="field" Text="검사 설명" Margin="0"/>
+                        <TextBlock Grid.Column="7" Classes="field" Text="접수자" Margin="0"/>
+                    </Grid>
+                </Border>
+                <ListBox Name="OrderList" Background="Transparent" DoubleTapped="OnRowDoubleTapped"/>
+            </DockPanel>
+        </Border>
+    </DockPanel>
+</Window>

@@ -17,6 +17,7 @@ var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
 
 builder.Services.AddSingleton(new UserStore(oracleConn));
 builder.Services.AddSingleton(new StudyStore(oracleConn));
+builder.Services.AddSingleton(new OrderStore(oracleConn));
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -36,8 +37,10 @@ app.UseAuthorization();
 // Oracle 은 첫 기동이 느리다 — 준비될 때까지 재시도 후 스키마·admin 시드.
 var users = app.Services.GetRequiredService<UserStore>();
 var studies = app.Services.GetRequiredService<StudyStore>();
+var orders = app.Services.GetRequiredService<OrderStore>();
 await users.InitializeWithRetryAsync(app.Logger, maxAttempts: 60, delaySeconds: 5);
 await studies.InitializeAsync();
+await orders.InitializeAsync();
 
 // ── 엔드포인트 ──────────────────────────────────────────────────────
 
@@ -72,6 +75,26 @@ app.MapGet("/api/studies", async (string? patientId, string? patientName, string
         string? from, string? to) =>
     Results.Ok(await studies.SearchAsync(patientId, patientName, modality, from, to)))
     .RequireAuthorization();
+
+// ── Worklist(검사 예약/오더) — 로그인 필요 ──────────────────────────
+
+app.MapGet("/api/orders", async (string? date, string? modality) =>
+    Results.Ok(await orders.SearchAsync(date, modality)))
+    .RequireAuthorization();
+
+app.MapPost("/api/orders", async (OrderDto order, ClaimsPrincipal principal) =>
+{
+    if (order.PatientId.Trim().Length == 0 || order.PatientName.Trim().Length == 0)
+        return Results.BadRequest(new { message = "환자 ID 와 이름은 필수입니다." });
+    var id = await orders.CreateAsync(order with { CreatedBy = Subject(principal) });
+    return Results.Ok(new { ok = true, id });
+}).RequireAuthorization();
+
+app.MapDelete("/api/orders/{id:long}", async (long id) =>
+{
+    await orders.DeleteAsync(id);
+    return Results.Ok(new { ok = true });
+}).RequireAuthorization();
 
 // ── 계정 관리 — admin 전용 (본인 비밀번호 변경만 예외) ──────────────
 

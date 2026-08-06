@@ -100,6 +100,39 @@ public sealed class ServerClient
         }
     }
 
+    // ── Worklist (검사 예약/오더 — 4차) ──────────────────────────────
+
+    public sealed record Order(
+        long Id, string PatientId, string PatientName, string Sex, DateTime? BirthDate,
+        string Modality, DateTime ScheduledDate, string Description, string AccessionNumber,
+        string CreatedBy);
+
+    public static async Task<List<Order>?> GetOrdersAsync(DateTime? date, string? modality)
+    {
+        if (!AppSession.IsOnline) return null;
+        try
+        {
+            var query = new List<string>();
+            if (date is { } d) query.Add($"date={d:yyyy-MM-dd}");
+            if (!string.IsNullOrWhiteSpace(modality)) query.Add($"modality={Uri.EscapeDataString(modality)}");
+            var response = await Http.SendAsync(Authorized(HttpMethod.Get,
+                $"/api/orders{(query.Count > 0 ? "?" + string.Join('&', query) : "")}"));
+            return response.IsSuccessStatusCode
+                ? await response.Content.ReadFromJsonAsync<List<Order>>()
+                : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public static Task<(bool Ok, string Message)> CreateOrderAsync(Order order) =>
+        SendSimpleAsync(Authorized(HttpMethod.Post, "/api/orders", order));
+
+    public static Task<(bool Ok, string Message)> DeleteOrderAsync(long id) =>
+        SendSimpleAsync(Authorized(HttpMethod.Delete, $"/api/orders/{id}"));
+
     // ── 계정 관리 (admin 전용 API — S3) ─────────────────────────────
 
     public sealed record UserEntry(string Username, string DisplayName);

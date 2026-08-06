@@ -17,7 +17,7 @@ public partial class ExamInfoViewModel : ViewModelBase
     [ObservableProperty] private string _patientName = "";
     [ObservableProperty] private string _sex = "-";
     [ObservableProperty] private string _age = "";
-    [ObservableProperty] private string _modality = "OT";
+    [ObservableProperty] private string _modality = Services.AppSettingsStore.Current.DefaultModality;
     [ObservableProperty] private DateTime? _studyDate = DateTime.Today;
     [ObservableProperty] private string _studyDescription = "";
     [ObservableProperty] private string _accessionNumber = "";
@@ -37,6 +37,7 @@ public partial class ExamInfoViewModel : ViewModelBase
         PatientName = "";
         Sex = "-";
         Age = "";
+        Modality = Services.AppSettingsStore.Current.DefaultModality;
         StudyDescription = "";
         AccessionNumber = "";
         Comment = "";

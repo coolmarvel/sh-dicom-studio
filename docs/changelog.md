@@ -12,6 +12,13 @@ domain: development
 <!-- ## vX.Y.Z — YYYY-MM-DD
 - 변경 요약 -->
 
+## v0.1.13 — 2026-08-06
+
+- **Worklist (4차 핵심)** — 서버 예약 조회 → 선택하면 환자정보 자동 입력. 예약 등록·삭제 포함
+- **Send/Multisend** — 화면의 영상+정보로 즉시 전송, Multisend 는 다중 목적지 동시 전송
+- **Option** — 기본 Modality·기본 레이아웃(자동/고정) 설정 (M4 완결)
+- 남은 비활성 버튼은 VP I/F·VP Scan(장비 필요)과 Magnify·Tools 뿐
+
 ## v0.1.12 — 2026-08-06
 
 - **PACS 전송 (3차 핵심)** — FindDB 우클릭 "DICOM Storage SCP로 전송…" → 검사 보내기 모달

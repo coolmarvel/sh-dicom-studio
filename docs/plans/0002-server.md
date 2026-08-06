@@ -38,6 +38,16 @@ status: active
       FindDB 우클릭 "DICOM Storage SCP로 전송…" 활성화. 압축은 Keep Original 만.
 - [x] E2E: C-ECHO 성공 → 2장 C-STORE → Orthanc REST 로 수신 확인(PACS01)
 - [ ] `[?]` 파일(DICOM)까지 우리 서버에 보관할지 — 추후 결정
+
+## S5 — 4차: Worklist ✅ 2026-08-06 (핵심 완료)
+
+- [x] 서버 ORDERS 테이블 + /api/orders (등록/조회(날짜·Modality)/삭제, 로그인 필요)
+- [x] 앱 Worklist 창 — 예약 조회 → 선택/더블클릭 → 환자정보 폼 자동 입력 (AccessionNo 자동
+      발급 A#####). 예약 등록(접수)·삭제 포함
+- [x] Send/Multisend 타일 — 현재 화면을 임시 DICOM 으로 만들어 전송, Multisend 는 다중
+      목적지 선택(Ctrl+클릭) 후 순차 전송·결과 요약
+- [ ] 병원 RIS 의 DICOM MWL(C-FIND SCU) 연동 — 실제 RIS 접속이 가능해질 때
+- 보류: VP I/F·VP Scan(장비 공유폴더 감시 — 하드웨어 필요), Magnify·Tools(저우선)
 - 3차 전송 UI 참고 (PPW 5.1 "검사 보내기" 모달, 2026-08-06 사용자 제공 자료):
   로컬 IP 선택 · 목적지 remote host 목록(AETitle/호스트/포트/설명) · [연결 테스트](C-ECHO) ·
   [Send]/[중지] · 압축 선택(Keep Original 등). FindDB 우클릭 "DICOM Storage SCP로 전송…"

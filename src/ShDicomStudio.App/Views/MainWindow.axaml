@@ -91,7 +91,7 @@
                             <Button Classes="tile" Click="OnSaveClick" ToolTip.Tip="화면의 영상을 DICOM 파일로 저장">
                                 <StackPanel><i:Icon Value="mdi-content-save"/><TextBlock Text="SaveAs"/></StackPanel>
                             </Button>
-                            <Button Classes="tile" IsEnabled="False" ToolTip.Tip="DICOM Worklist 조회 — 4차 예정">
+                            <Button Classes="tile" Click="OnWorklistClick" ToolTip.Tip="검사 예약 조회 — 선택하면 환자정보 자동 입력 (로그인 필요)">
                                 <StackPanel><i:Icon Value="mdi-clipboard-text"/><TextBlock Text="Worklist"/></StackPanel>
                             </Button>
                             <Button Classes="tile" Click="OnSaveDbClick" ToolTip.Tip="화면의 영상·정보를 로컬 DB에 검사로 저장">
@@ -104,13 +104,13 @@
                             <Button Classes="tile" Click="OnFindDbClick" ToolTip.Tip="로컬 DB 검색·열기·삭제">
                                 <StackPanel><i:Icon Value="mdi-database-search"/><TextBlock Text="FindDB"/></StackPanel>
                             </Button>
-                            <Button Classes="tile" IsEnabled="False" ToolTip.Tip="PACS로 DICOM 전송 — 3차 예정">
+                            <Button Classes="tile" Click="OnSendTileClick" ToolTip.Tip="화면의 영상+정보로 DICOM을 만들어 PACS로 전송">
                                 <StackPanel><i:Icon Value="mdi-send"/><TextBlock Text="Send"/></StackPanel>
                             </Button>
-                            <Button Classes="tile" IsEnabled="False" ToolTip.Tip="여러 PACS 동시 전송 — 3차 예정">
+                            <Button Classes="tile" Click="OnMultisendTileClick" ToolTip.Tip="여러 PACS에 동시 전송">
                                 <StackPanel><i:Icon Value="mdi-broadcast"/><TextBlock Text="Multisend"/></StackPanel>
                             </Button>
-                            <Button Classes="tile" IsEnabled="False" ToolTip.Tip="옵션 설정 — M4 예정">
+                            <Button Classes="tile" Click="OnOptionClick" ToolTip.Tip="기본 Modality·기본 레이아웃 설정">
                                 <StackPanel><i:Icon Value="mdi-cog"/><TextBlock Text="Option"/></StackPanel>
                             </Button>
                             <Button Classes="tile" IsEnabled="False" ToolTip.Tip="장비 연동 설정 — 보류 (하드웨어 필요)">

@@ -1,0 +1,33 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="ShDicomStudio.App.Views.OptionWindow"
+        Title="옵션 (Option)"
+        Icon="avares://ShDicomStudio.App/Assets/appicon.ico"
+        Width="420" SizeToContent="Height" CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource ChromeBrush}">
+
+    <StackPanel Margin="20" Spacing="14">
+        <TextBlock Classes="section" Text="기본 환경 (DEFAULT)"/>
+
+        <StackPanel>
+            <TextBlock Classes="field" Text="기본 Modality — 새 검사 폼의 초기값"/>
+            <ComboBox Name="ModalityCombo" HorizontalAlignment="Stretch"/>
+        </StackPanel>
+
+        <StackPanel Spacing="6">
+            <TextBlock Classes="field" Text="뷰어 기본 레이아웃"/>
+            <RadioButton Name="AutoRadio" Content="자동 — 장수에 맞춰 배치 (2장→2×1, 4장→2×2 …)" FontSize="12"/>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <RadioButton Name="FixedRadio" Content="고정:" FontSize="12" VerticalAlignment="Center"/>
+                <ComboBox Name="LayoutCombo" MinWidth="90" VerticalAlignment="Center"/>
+            </StackPanel>
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,6,0,0">
+            <Button Content="저장" Click="OnSaveClick" Padding="18,7"
+                    Background="{StaticResource AccentBrush}" Foreground="White"/>
+            <Button Content="취소" Click="OnCancelClick" Padding="18,7"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

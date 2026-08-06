@@ -113,9 +113,16 @@ public partial class MainViewModel : ViewModelBase
         Exam.Comment = info.Comment;
     }
 
-    /// <summary>장수에 따라 보기 편한 그리드를 자동 선택 (수동 픽커로 언제든 변경 가능).</summary>
+    /// <summary>장수에 따라 보기 편한 그리드를 자동 선택 (옵션에서 고정 레이아웃으로 변경 가능).</summary>
     public void AutoLayout()
     {
+        var settings = AppSettingsStore.Current;
+        if (!settings.AutoLayout)
+        {
+            SetLayout(settings.FixedLayoutRows, settings.FixedLayoutCols);
+            return;
+        }
+
         var (rows, cols) = Images.Count switch
         {
             <= 1 => (1, 1),
@@ -274,7 +281,7 @@ public partial class MainViewModel : ViewModelBase
         _cutBuffer = [];
         Images.Clear();
         OpenedStudyId = null;
-        SetLayout(1, 1);
+        AutoLayout();
         StatusText = IdleStatus;
     }
 
@@ -398,6 +405,30 @@ public partial class MainViewModel : ViewModelBase
 
         StatusText = $"JPG {saved}장 내보냄{(overlay ? " (환자정보 오버레이)" : "")} → {folder}";
         return saved;
+    }
+
+    /// <summary>
+    /// 현재 화면(선택 없으면 전체)을 임시 DICOM 으로 변환해 전송용 파일 목록을 만든다
+    /// (VPWinGate 3.2.8 Send — 화면의 영상+입력 정보 기준).
+    /// </summary>
+    public async Task<(IReadOnlyList<string> Paths, string Label)> BuildTempDicomAsync()
+    {
+        var targets = SelectedItems() is { Count: > 0 } sel ? sel : Images.ToList();
+        var info = BuildExamInfo();
+
+        var dir = Directory.CreateTempSubdirectory("shdicom-send").FullName;
+        var study = new DicomStudy();
+        var paths = new List<string>();
+        for (var i = 0; i < targets.Count; i++)
+        {
+            var path = Path.Combine(dir, $"{i + 1:00000}.dcm");
+            var index = i;
+            await Task.Run(() => study.Create(targets[index].EncodedBytes, info, index + 1).Save(path));
+            paths.Add(path);
+        }
+
+        var label = info.Anonymous ? "ANONYMOUS" : $"{info.PatientName} ({info.PatientId})";
+        return (paths, label);
     }
 
     /// <summary>선택(없으면 전체) 이미지를 로컬 DB 에 검사 한 건으로 저장 (VPWinGate SaveDB).</summary>

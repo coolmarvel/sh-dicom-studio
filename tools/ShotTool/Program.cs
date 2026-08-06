@@ -180,11 +180,22 @@ if (which == "pacstest")
     return;
 }
 
+// worklist 장면은 라이브 서버 로그인 후 데이터가 보이도록 한다.
+if (which == "worklist")
+{
+    var wlLogin = ShDicomStudio.App.Services.ServerClient.LoginAsync("http://localhost:8080", "admin", "admin1234");
+    while (!wlLogin.IsCompleted) { Dispatcher.UIThread.RunJobs(); Thread.Sleep(10); }
+    var wl = wlLogin.GetAwaiter().GetResult();
+    if (wl.Success)
+        ShDicomStudio.App.Services.AppSession.SignIn("http://localhost:8080", wl.Username, wl.DisplayName, wl.Token);
+}
+
 Window win = which switch
 {
     "login" => new LoginWindow(),
     "dbconfig" => new ServerConfigWindow(ShDicomStudio.App.Services.ServerConfigStore.Load()),
     "send" => new SendWindow([], "홍길동 (20260001)"),
+    "worklist" => new WorklistWindow(),
     _ => new MainWindow { DataContext = vm },
 };
 if (width is int ww) win.Width = ww;
@@ -192,6 +203,8 @@ if (height is int hh) win.Height = hh;
 
 win.Show();
 for (var i = 0; i < 10; i++) Dispatcher.UIThread.RunJobs();
+if (which == "worklist") // Opened 의 비동기 조회가 끝날 때까지 펌프
+    for (var i = 0; i < 200; i++) { Dispatcher.UIThread.RunJobs(); Thread.Sleep(10); }
 
 var frame = win.CaptureRenderedFrame();
 frame?.Save(outPath);

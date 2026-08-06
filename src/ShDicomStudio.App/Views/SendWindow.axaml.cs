@@ -15,17 +15,35 @@ namespace ShDicomStudio.App.Views;
 public partial class SendWindow : Window
 {
     private readonly IReadOnlyList<string> _dcmPaths;
+    private readonly bool _multi;
     private PacsConfig _config = PacsConfigStore.Load();
 
     public SendWindow() : this([], "") { }
 
-    public SendWindow(IReadOnlyList<string> dcmPaths, string studyLabel)
+    public SendWindow(IReadOnlyList<string> dcmPaths, string studyLabel, bool multi = false)
     {
         InitializeComponent();
         _dcmPaths = dcmPaths;
-        StudyBlock.Text = $"보낼 검사: {studyLabel} — {dcmPaths.Count}장";
+        _multi = multi;
+        if (multi)
+        {
+            Title = "검사 보내기 — Multisend (여러 곳 동시 전송)";
+            NodeList.SelectionMode = SelectionMode.Multiple;
+        }
+        StudyBlock.Text = $"보낼 검사: {studyLabel} — {dcmPaths.Count}장"
+            + (multi ? "  ·  목적지를 여러 개 선택하세요" : "");
         RefreshList();
     }
+
+    /// <summary>선택된 목적지들 (Multisend 는 다중, 아니면 단일).</summary>
+    private List<PacsNode> SelectedNodes() =>
+        NodeList.SelectedItems is { } items
+            ? items.Cast<string>()
+                .Select(name => _config.Nodes.FirstOrDefault(n => n.Name == name))
+                .Where(n => n is not null)
+                .Cast<PacsNode>()
+                .ToList()
+            : [];
 
     private void RefreshList(string? select = null)
     {
@@ -137,9 +155,10 @@ public partial class SendWindow : Window
 
     private async void OnSendClick(object? sender, RoutedEventArgs e)
     {
-        if (Selected is not { } node)
+        List<PacsNode> nodes = _multi ? SelectedNodes() : Selected is { } one ? [one] : [];
+        if (nodes.Count == 0)
         {
-            ShowStatus("목적지를 선택하세요.");
+            ShowStatus(_multi ? "목적지를 하나 이상 선택하세요 (Ctrl+클릭)." : "목적지를 선택하세요.");
             return;
         }
         if (_dcmPaths.Count == 0)
@@ -149,23 +168,33 @@ public partial class SendWindow : Window
         }
 
         SendButton.IsEnabled = false;
-        ShowStatus($"{node.Name} 로 {_dcmPaths.Count}장 전송 중…", error: false);
         try
         {
-            var sent = await DicomSender.SendAsync(node, _dcmPaths);
-            if (sent == _dcmPaths.Count)
+            var results = new List<string>();
+            var allOk = true;
+            foreach (var node in nodes)
             {
-                await Dialogs.ShowAsync(this, "전송 완료",
-                    $"{node.Name} ({node.AeTitle}@{node.Host}:{node.Port}) 로 {sent}장 전송되었습니다.");
+                ShowStatus($"{node.Name} 로 {_dcmPaths.Count}장 전송 중…", error: false);
+                try
+                {
+                    var sent = await DicomSender.SendAsync(node, _dcmPaths);
+                    allOk &= sent == _dcmPaths.Count;
+                    results.Add($"{node.Name}: {sent}/{_dcmPaths.Count}장");
+                }
+                catch (Exception ex)
+                {
+                    allOk = false;
+                    results.Add($"{node.Name}: 실패 ({ex.Message})");
+                }
+            }
+
+            await Dialogs.ShowAsync(this, allOk ? "전송 완료" : "전송 결과",
+                string.Join('\n', results));
+            if (allOk)
+            {
                 Close(true);
                 return;
             }
-            ShowStatus($"일부만 전송됨: {sent}/{_dcmPaths.Count} — PACS 상태를 확인하세요.");
-        }
-        catch (Exception ex)
-        {
-            Program.LogCrash(ex);
-            ShowStatus($"전송 실패 — {ex.Message}");
         }
         finally
         {

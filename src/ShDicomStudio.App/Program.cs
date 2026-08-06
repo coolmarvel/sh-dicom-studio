@@ -22,6 +22,8 @@ sealed class Program
         AppDomain.CurrentDomain.UnhandledException += (_, e) =>
             LogCrash(e.ExceptionObject as Exception ?? new Exception("unknown"));
 
+        Services.AppSettingsStore.Load(); // 옵션(기본 Modality·레이아웃)은 시작 시 1회 로드
+
         try
         {
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);

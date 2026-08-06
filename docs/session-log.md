@@ -11,6 +11,21 @@ domain: development
 
 블록 형식: `## YYYY-MM-DD — 제목` 아래에 **요청/피드백 → 수정 → 검증 → 다음** 순서로 간결하게.
 
+## 2026-08-06 — 잔여 버튼 일괄 구현: Worklist·Send·Multisend·Option v0.1.13
+
+- **피드백**: "비활성 버튼들 언제 구현?" → 이번에 4개 모두. VP I/F·VP Scan 은 장비 필요로 보류.
+- **수정**:
+  - **Option**: AppSettingsStore(settings.json) + OptionWindow — 기본 Modality(폼 초기값·
+    Clear 반영)·기본 레이아웃(자동/고정, AutoLayout 이 설정 존중).
+  - **Send/Multisend**: VM `BuildTempDicomAsync`(화면 → 임시 DICOM) → SendWindow.
+    Multisend 는 다중 선택(Ctrl+클릭) 후 순차 전송·결과 요약 다이얼로그.
+  - **Worklist(4차)**: 서버 ORDERS + /api/orders(등록/조회/삭제) · WorklistWindow(날짜·Modality
+    조회, 더블클릭 → FillExam, 예약 등록/삭제). RIS 의 DICOM MWL 연동은 향후 항목으로.
+- **검증**: build/test 34/34/format ✅ · orders API 라이브(등록→조회, createdBy 기록) ✅ ·
+  Worklist 창 라이브 데이터 캡처 ✅ · 스모크 ✅ → 인스톨러 0.1.13 바탕화면 교체.
+- **다음**: 사용자 실기 — Worklist 등록→선택→변환→SaveDB→전송 풀 사이클. 남은 로드맵:
+  M5(mac/linux 패키징) · RIS MWL · 파일 서버 보관 결정.
+
 ## 2026-08-06 — 3차 PACS 전송 + 계정 관리 v0.1.12
 
 - **피드백/요청**: 서버 목록에 이름만 표시 → 반영. 이어서 3차(전송)와 계정 관리 동시 진행.
