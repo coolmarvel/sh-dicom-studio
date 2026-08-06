@@ -41,6 +41,14 @@ public partial class ImageItemViewModel : ViewModelBase
     /// <summary>로컬 DB 의 검사에서 불러온(또는 이미 추가 저장된) 이미지 — InsExam 대상에서 제외.</summary>
     public bool IsFromDb { get; set; }
 
+    /// <summary>뷰어 오버레이 좌상단의 셀 번호 (Images 내 1-based 순번 — VM 이 갱신).</summary>
+    [ObservableProperty]
+    private string _overlayNumber = "";
+
+    /// <summary>뷰어 오버레이 좌하단 (IM n/total + 해상도 — VM 이 갱신).</summary>
+    [ObservableProperty]
+    private string _overlayBottomText = "";
+
     /// <summary>현재 표시 중인(변환 반영된) 인코딩 바이트 — DICOM 변환의 입력.</summary>
     public byte[] EncodedBytes { get; private set; }
 

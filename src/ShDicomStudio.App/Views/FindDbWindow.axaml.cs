@@ -31,6 +31,29 @@ public partial class FindDbWindow : Window
         DataContext = new FindDbViewModel(db);
     }
 
+    // 탭 전환 (PPW: PACS/내부) — 오프라인이면 서버 탭 진입 차단.
+    private void OnLocalTabClick(object? sender, RoutedEventArgs e)
+    {
+        LocalTab.IsChecked = true;
+        ServerTab.IsChecked = false;
+        if (Vm is { } vm) vm.SearchServer = false;
+    }
+
+    private async void OnServerTabClick(object? sender, RoutedEventArgs e)
+    {
+        if (Vm is not { } vm) return;
+        if (!vm.CanSearchServer)
+        {
+            ServerTab.IsChecked = false;
+            LocalTab.IsChecked = true;
+            await Dialogs.ShowAsync(this, "서버 검색", "서버에 로그인해야 사용할 수 있습니다.");
+            return;
+        }
+        ServerTab.IsChecked = true;
+        LocalTab.IsChecked = false;
+        vm.SearchServer = true;
+    }
+
     private void OnOpenClick(object? sender, RoutedEventArgs e) => OpenSelected();
 
     private void OnRowDoubleTapped(object? sender, TappedEventArgs e) => OpenSelected();

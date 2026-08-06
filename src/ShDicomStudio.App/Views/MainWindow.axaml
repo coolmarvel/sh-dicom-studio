@@ -28,6 +28,14 @@
         <Style Selector="Border.cell.selected">
             <Setter Property="BorderBrush" Value="#FFE53935"/>
         </Style>
+        <!-- 뷰어 오버레이 텍스트 (PACSPLUS 스타일 — 흰 글씨 + 그림자) -->
+        <Style Selector="TextBlock.overlay">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="LineHeight" Value="17"/>
+            <Setter Property="Effect" Value="drop-shadow(1 1 2 #CC000000)"/>
+            <Setter Property="IsHitTestVisible" Value="False"/>
+        </Style>
     </Window.Styles>
 
     <DockPanel>
@@ -315,6 +323,15 @@
                             <i:Icon Value="mdi-page-last" FontSize="16" Foreground="{StaticResource TileIconBrush}"/>
                         </Button>
                         <Separator Width="1" Height="20" Background="{StaticResource RuleBrush}" Margin="4,0"/>
+                        <ToggleButton Height="30" Padding="8,0" CornerRadius="6"
+                                      IsChecked="{Binding ShowOverlay}"
+                                      ToolTip.Tip="뷰어에 환자·검사 정보 오버레이 표시/숨김">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <i:Icon Value="mdi-text-recognition" FontSize="16" Foreground="{StaticResource TileIconBrush}"/>
+                                <TextBlock Text="오버레이" FontSize="12"
+                                           Foreground="{StaticResource BodyTextBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </ToggleButton>
                         <Button Classes="toolbar" Click="OnExportJpegClick"
                                 ToolTip.Tip="선택(없으면 전체) 이미지를 JPG로 — 환자정보 오버레이 선택 가능">
                             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -341,7 +358,30 @@
                         <DataTemplate x:DataType="vm:ImageItemViewModel">
                             <Border Classes="cell" Classes.selected="{Binding IsSelected}"
                                     PointerPressed="OnCellPressed" Background="{StaticResource ViewerBgBrush}">
-                                <controls:ImageViewer Source="{Binding Bitmap}"/>
+                                <Grid>
+                                    <controls:ImageViewer Source="{Binding Bitmap}"/>
+
+                                    <!-- 오버레이 (PACSPLUS 뷰어 배치: TL 환자 · TR 검사 · BL IM · BR 담당의) -->
+                                    <StackPanel Margin="10,8" HorizontalAlignment="Left" VerticalAlignment="Top"
+                                                IsVisible="{ReflectionBinding $parent[Window].DataContext.ShowOverlay}">
+                                        <TextBlock Classes="overlay" FontSize="15" FontWeight="SemiBold"
+                                                   Text="{Binding OverlayNumber}"/>
+                                        <TextBlock Classes="overlay"
+                                                   Text="{ReflectionBinding $parent[Window].DataContext.OverlayPatientText}"/>
+                                    </StackPanel>
+                                    <TextBlock Classes="overlay" Margin="10,8" TextAlignment="Right"
+                                               HorizontalAlignment="Right" VerticalAlignment="Top"
+                                               IsVisible="{ReflectionBinding $parent[Window].DataContext.ShowOverlay}"
+                                               Text="{ReflectionBinding $parent[Window].DataContext.OverlayStudyText}"/>
+                                    <TextBlock Classes="overlay" Margin="10,8"
+                                               HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                                               IsVisible="{ReflectionBinding $parent[Window].DataContext.ShowOverlay}"
+                                               Text="{Binding OverlayBottomText}"/>
+                                    <TextBlock Classes="overlay" Margin="10,8" TextAlignment="Right"
+                                               HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                               IsVisible="{ReflectionBinding $parent[Window].DataContext.ShowOverlay}"
+                                               Text="{ReflectionBinding $parent[Window].DataContext.OverlayPhysicianText}"/>
+                                </Grid>
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>

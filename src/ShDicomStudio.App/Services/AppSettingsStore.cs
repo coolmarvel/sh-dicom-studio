@@ -14,6 +14,9 @@ public sealed class AppSettings
 
     public int FixedLayoutRows { get; set; } = 1;
     public int FixedLayoutCols { get; set; } = 1;
+
+    /// <summary>뷰어 셀에 환자·검사 정보 오버레이 표시 (PACS 뷰어 관례).</summary>
+    public bool ShowViewerOverlay { get; set; } = true;
 }
 
 /// <summary>앱 옵션 — %AppData%/sh-dicom-studio/settings.json. 시작 시 1회 로드.</summary>

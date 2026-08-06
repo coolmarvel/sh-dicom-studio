@@ -20,6 +20,8 @@ public sealed class StudyRowViewModel(StudyRecord record)
     public string PatientId => Record.Info.PatientId;
     public string PatientName => Record.Info.PatientName;
     public string Sex => Record.Info.Sex;
+    public string Age => Record.Info.Age.Length > 0 ? $"{Record.Info.Age}Y" : "";
+    public string BirthText => Record.Info.BirthDate?.ToString("yyyy-MM-dd") ?? "";
     public string Modality => Record.Info.Modality;
     public string Description => Record.Info.StudyDescription;
     public string CountText => $"{Record.ImageCount}장";
@@ -99,6 +101,14 @@ public partial class FindDbViewModel : ViewModelBase
         foreach (var record in records)
             Results.Add(new StudyRowViewModel(record));
         CountText = $"{Results.Count}건";
+    }
+
+    /// <summary>퀵필터 버튼 (PPW 의 MR/CT/ALL 버튼 줄) — Modality 지정 후 즉시 검색.</summary>
+    [RelayCommand]
+    private async Task QuickFilterAsync(string modality)
+    {
+        Modality = modality == "ALL" ? "전체" : modality;
+        await SearchAsync();
     }
 
     [RelayCommand]

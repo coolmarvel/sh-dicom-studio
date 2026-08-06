@@ -190,8 +190,40 @@ if (which == "worklist")
         ShDicomStudio.App.Services.AppSession.SignIn("http://localhost:8080", wl.Username, wl.DisplayName, wl.Token);
 }
 
+// finddb 장면: 임시 로컬 DB 에 데모 검사 2건을 만들어 보여준다.
+ShDicomStudio.Core.Database.LocalDatabase? findDbTemp = null;
+if (which == "finddb")
+{
+    var root = Directory.CreateTempSubdirectory("shdicom-finddb").FullName;
+    findDbTemp = new ShDicomStudio.Core.Database.LocalDatabase(root);
+    var img = ImageLoader.Load(CreateDemoImages(root, 1)[0]);
+    findDbTemp.SaveStudy(new ShDicomStudio.Core.Dicom.ExamInfo
+    {
+        PatientId = "20260001",
+        PatientName = "홍길동",
+        Sex = "M",
+        Age = "45",
+        Modality = "OT",
+        StudyDate = new DateTime(2026, 8, 6),
+        BirthDate = new DateTime(1981, 3, 2),
+        StudyDescription = "동맥경화도검사",
+    }, [img.EncodedBytes, img.EncodedBytes]);
+    findDbTemp.SaveStudy(new ShDicomStudio.Core.Dicom.ExamInfo
+    {
+        PatientId = "20260002",
+        PatientName = "김철수",
+        Sex = "M",
+        Age = "61",
+        Modality = "US",
+        StudyDate = new DateTime(2026, 8, 5),
+        BirthDate = new DateTime(1965, 1, 15),
+        StudyDescription = "경동맥 초음파",
+    }, [img.EncodedBytes]);
+}
+
 Window win = which switch
 {
+    "finddb" => new FindDbWindow(findDbTemp!),
     "login" => new LoginWindow(),
     "dbconfig" => new ServerConfigWindow(ShDicomStudio.App.Services.ServerConfigStore.Load()),
     "send" => new SendWindow([], "홍길동 (20260001)"),
@@ -203,7 +235,7 @@ if (height is int hh) win.Height = hh;
 
 win.Show();
 for (var i = 0; i < 10; i++) Dispatcher.UIThread.RunJobs();
-if (which == "worklist") // Opened 의 비동기 조회가 끝날 때까지 펌프
+if (which is "worklist" or "finddb") // 비동기 조회가 끝날 때까지 펌프
     for (var i = 0; i < 200; i++) { Dispatcher.UIThread.RunJobs(); Thread.Sleep(10); }
 
 var frame = win.CaptureRenderedFrame();

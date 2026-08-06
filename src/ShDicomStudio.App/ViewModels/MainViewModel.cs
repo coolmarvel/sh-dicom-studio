@@ -61,6 +61,68 @@ public partial class MainViewModel : ViewModelBase
     public MainViewModel()
     {
         Images.CollectionChanged += (_, _) => { RefreshPage(); RefreshCounts(); };
+        // 오버레이 텍스트는 입력 폼을 따라간다 (PACS 뷰어 관례 — PPW 참고)
+        Exam.PropertyChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(OverlayPatientText));
+            OnPropertyChanged(nameof(OverlayStudyText));
+            OnPropertyChanged(nameof(OverlayPhysicianText));
+        };
+    }
+
+    // ── 뷰어 오버레이 (PACSPLUS 뷰어 스타일) ─────────────────────────
+
+    [ObservableProperty]
+    private bool _showOverlay = AppSettingsStore.Current.ShowViewerOverlay;
+
+    partial void OnShowOverlayChanged(bool value)
+    {
+        var settings = AppSettingsStore.Current;
+        settings.ShowViewerOverlay = value;
+        AppSettingsStore.Save(settings);
+    }
+
+    /// <summary>좌상단: ACC# · 환자ID · 이름 성별/나이.</summary>
+    public string OverlayPatientText
+    {
+        get
+        {
+            if (Exam.IsAnonymous) return "ANONYMOUS";
+            var nameLine = Exam.PatientName.Trim();
+            var sexAge = string.Join(" / ", new[]
+            {
+                Exam.Sex is "M" or "F" or "O" ? Exam.Sex : "",
+                Exam.Age.Trim().Length > 0 ? $"{Exam.Age.Trim()}Y" : "",
+            }.Where(s => s.Length > 0));
+            if (sexAge.Length > 0) nameLine = $"{nameLine} {sexAge}".Trim();
+            return string.Join('\n', new[]
+            {
+                Exam.AccessionNumber.Trim().Length > 0 ? $"ACC#: {Exam.AccessionNumber.Trim()}" : "",
+                Exam.PatientId.Trim(),
+                nameLine,
+            }.Where(s => s.Length > 0));
+        }
+    }
+
+    /// <summary>우상단: 검사명 · Modality · 검사일.</summary>
+    public string OverlayStudyText => string.Join('\n', new[]
+    {
+        Exam.StudyDescription.Trim(),
+        Exam.Modality,
+        Exam.StudyDate?.ToString("yyyy.MM.dd") ?? "",
+    }.Where(s => s.Length > 0));
+
+    /// <summary>우하단: 담당의.</summary>
+    public string OverlayPhysicianText => Exam.ReferringPhysician.Trim();
+
+    /// <summary>셀 번호·IM n/total 갱신 (이미지 추가/삭제/순서변경 시).</summary>
+    private void RenumberImages()
+    {
+        for (var i = 0; i < Images.Count; i++)
+        {
+            Images[i].OverlayNumber = (i + 1).ToString();
+            Images[i].OverlayBottomText = $"IM: {i + 1} / {Images.Count}\n{Images[i].SizeText}";
+        }
     }
 
     public async Task LoadImagesAsync(IReadOnlyList<string> paths)
@@ -157,6 +219,7 @@ public partial class MainViewModel : ViewModelBase
     {
         CountText = $"이미지 {Images.Count}장 · 선택 {Images.Count(i => i.IsSelected)}장";
         HasImages = Images.Count > 0;
+        RenumberImages();
     }
 
     // ── 페이지/레이아웃 ──────────────────────────────────────────────
