@@ -281,6 +281,19 @@ public partial class MainViewModel : ViewModelBase
 
     [RelayCommand] private void RotateCw() => ApplyToSelected(ImageTransformOp.Rotate90Cw);
     [RelayCommand] private void RotateCcw() => ApplyToSelected(ImageTransformOp.Rotate90Ccw);
+    [RelayCommand] private void Rotate180() => ApplyToSelected(ImageTransformOp.Rotate180);
+
+    /// <summary>돋보기 모드 (Magnify) — 켜져 있는 동안 드래그 이동 대신 렌즈가 따라다닌다.</summary>
+    [ObservableProperty]
+    private bool _magnifyEnabled;
+
+    [RelayCommand]
+    private void UnselectAll()
+    {
+        foreach (var item in Images)
+            item.IsSelected = false;
+        RefreshCounts();
+    }
     [RelayCommand] private void FlipHorizontal() => ApplyToSelected(ImageTransformOp.FlipHorizontal);
     [RelayCommand] private void FlipVertical() => ApplyToSelected(ImageTransformOp.FlipVertical);
     [RelayCommand] private void Invert() => ApplyToSelected(ImageTransformOp.Invert);

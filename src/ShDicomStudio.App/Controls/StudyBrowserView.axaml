@@ -1,18 +1,13 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:ShDicomStudio.App.ViewModels"
-        xmlns:i="https://github.com/projektanker/icons.avalonia"
-        x:Class="ShDicomStudio.App.Views.FindDbWindow"
-        x:DataType="vm:FindDbViewModel"
-        Title="로컬 데이터베이스 (FindDB)"
-        Icon="avares://ShDicomStudio.App/Assets/appicon.ico"
-        Width="860" Height="560"
-        WindowStartupLocation="CenterOwner"
-        Background="{StaticResource ChromeBrush}">
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ShDicomStudio.App.ViewModels"
+             xmlns:i="https://github.com/projektanker/icons.avalonia"
+             x:Class="ShDicomStudio.App.Controls.StudyBrowserView"
+             x:DataType="vm:FindDbViewModel">
 
-    <DockPanel Margin="14">
+    <DockPanel>
 
-        <!-- 검색 대상 탭 (PPW: PACS/내부 탭 대응) -->
+        <!-- 검색 대상 탭 (PPW: PACS/내부) -->
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="0,0,0,8">
             <ToggleButton Name="LocalTab" Padding="16,6" CornerRadius="6,6,0,0"
                           IsChecked="True" Click="OnLocalTabClick">
@@ -32,7 +27,7 @@
         <!-- 검색 조건 -->
         <Border DockPanel.Dock="Top" Background="{StaticResource SidebarBrush}"
                 BorderBrush="{StaticResource RuleBrush}" BorderThickness="1"
-                CornerRadius="8" Padding="12" Margin="0,0,0,10">
+                CornerRadius="8" Padding="12" Margin="0,0,0,8">
             <Grid ColumnDefinitions="*,8,*,8,110,8,150,8,150,8,Auto,4,Auto" RowDefinitions="Auto,4,Auto">
                 <TextBlock Grid.Row="0" Grid.Column="0" Classes="field" Text="Patient ID"/>
                 <TextBox   Grid.Row="2" Grid.Column="0" Text="{Binding PatientId}"/>
@@ -74,18 +69,17 @@
         </StackPanel>
 
         <!-- 하단 버튼 -->
-        <DockPanel DockPanel.Dock="Bottom" Margin="0,10,0,0">
+        <DockPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
             <TextBlock DockPanel.Dock="Left" Text="{Binding CountText}"
                        Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center"/>
             <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-                <Button Name="OpenButton" Background="{StaticResource AccentBrush}" Foreground="White"
+                <Button Background="{StaticResource AccentBrush}" Foreground="White"
                         Padding="16,7" Click="OnOpenClick">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                         <i:Icon Value="mdi-folder-open" FontSize="14"/><TextBlock Text="열기"/>
                     </StackPanel>
                 </Button>
                 <Button Padding="16,7" Click="OnDeleteClick" Content="삭제"/>
-                <Button Padding="16,7" Click="OnCloseClick" Content="닫기"/>
             </StackPanel>
         </DockPanel>
 
@@ -111,7 +105,6 @@
                 <ListBox ItemsSource="{Binding Results}" SelectedItem="{Binding SelectedRow}"
                          Background="Transparent" DoubleTapped="OnRowDoubleTapped">
                     <ListBox.ContextMenu>
-                        <!-- PPW 5.1 워크리스트 우클릭 메뉴 차용 -->
                         <ContextMenu>
                             <MenuItem Header="검사 열기" Click="OnOpenClick">
                                 <MenuItem.Icon><i:Icon Value="mdi-folder-open"/></MenuItem.Icon>
@@ -153,4 +146,4 @@
             </DockPanel>
         </Border>
     </DockPanel>
-</Window>
+</UserControl>

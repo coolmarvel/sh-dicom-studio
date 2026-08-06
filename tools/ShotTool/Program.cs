@@ -223,11 +223,11 @@ if (which == "finddb")
 
 Window win = which switch
 {
-    "finddb" => new FindDbWindow(findDbTemp!),
+    "finddb" => new WorklistWindow(findDbTemp!, startBrowser: true),
     "login" => new LoginWindow(),
     "dbconfig" => new ServerConfigWindow(ShDicomStudio.App.Services.ServerConfigStore.Load()),
     "send" => new SendWindow([], "홍길동 (20260001)"),
-    "worklist" => new WorklistWindow(),
+    "worklist" => new WorklistWindow(findDbTemp ?? new ShDicomStudio.Core.Database.LocalDatabase(Directory.CreateTempSubdirectory("shdicom-wl").FullName)),
     _ => new MainWindow { DataContext = vm },
 };
 if (width is int ww) win.Width = ww;

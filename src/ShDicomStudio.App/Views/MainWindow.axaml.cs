@@ -71,20 +71,38 @@ public partial class MainWindow : Window
 
     private void OnExitClick(object? sender, RoutedEventArgs e) => Close();
 
-    // Worklist — 예약 선택 → 환자정보 폼 자동 입력 (VPWinGate 3.5).
+    // 통합 Worklist 창 — 예약 접수(선택 → 폼 자동 입력) + 검사 검색(열기 → 뷰어).
     private async void OnWorklistClick(object? sender, RoutedEventArgs e)
     {
-        if (!Services.AppSession.IsOnline)
+        try
         {
-            await Dialogs.ShowAsync(this, "Worklist", "서버에 로그인해야 사용할 수 있습니다.");
-            return;
+            if (ViewModel is not { } vm) return;
+
+            var result = await new WorklistWindow(Db).ShowDialog<object?>(this);
+            switch (result)
+            {
+                case Core.Dicom.ExamInfo picked:
+                    vm.FillExam(picked);
+                    vm.StatusText = $"Worklist 에서 불러옴 — {picked.PatientName} ({picked.PatientId})";
+                    break;
+
+                case StudyRecord record:
+                    vm.CloseAllCommand.Execute(null);
+                    await vm.LoadImagesAsync(Db.GetImagePaths(record.Id));
+                    foreach (var item in vm.Images)
+                        item.IsFromDb = true;
+                    vm.OpenedStudyId = record.Id;
+                    vm.FillExam(record.Info);
+                    vm.StatusText = $"검사 열림 — {record.Info.PatientName} ({record.Info.PatientId}) " +
+                                    $"{record.ImageCount}장 · SaveDB 로 업데이트/추가 저장";
+                    break;
+            }
         }
-
-        var picked = await new WorklistWindow().ShowDialog<Core.Dicom.ExamInfo?>(this);
-        if (picked is null || ViewModel is not { } vm) return;
-
-        vm.FillExam(picked);
-        vm.StatusText = $"Worklist 에서 불러옴 — {picked.PatientName} ({picked.PatientId})";
+        catch (Exception ex)
+        {
+            Program.LogCrash(ex);
+            await Dialogs.ShowAsync(this, "Worklist 오류", $"조회 중 오류가 발생했습니다.\n\n{ex}");
+        }
     }
 
     // Send/Multisend — 현재 화면을 임시 DICOM 으로 만들어 전송 (VPWinGate 3.2.8/3.2.9).
@@ -195,14 +213,20 @@ public partial class MainWindow : Window
                 return;
             }
 
-            // FindDB 로 연 검사가 있으면: 그 검사를 현재 화면대로 업데이트할지, 새 검사로 저장할지 선택.
+            // 열린 검사가 있으면: 업데이트 / 새 이미지 추가(구 InsExam) / 새 검사 — 저장 흐름 통합.
             if (vm.OpenedStudyId is not null)
             {
-                var choice = await Dialogs.ChooseAsync(this, "로컬 DB 저장",
-                    "FindDB 로 연 검사가 있습니다. 어떻게 저장할까요?",
+                var choices = new System.Collections.Generic.List<(string, string)>
+                {
                     ("update", "기존 검사 업데이트 — 현재 화면 그대로 (삭제·편집 반영)"),
-                    ("new", "새 검사로 저장"),
-                    ("cancel", "취소"));
+                };
+                if (vm.ValidateForInsExam() is null)
+                    choices.Add(("append", "기존 검사에 새 이미지만 추가"));
+                choices.Add(("new", "새 검사로 저장"));
+                choices.Add(("cancel", "취소"));
+
+                var choice = await Dialogs.ChooseAsync(this, "검사 저장",
+                    "열려 있는 검사가 있습니다. 어떻게 저장할까요?", choices.ToArray());
 
                 if (choice is "update")
                 {
@@ -211,12 +235,19 @@ public partial class MainWindow : Window
                         $"열려 있던 검사가 현재 화면 그대로 {updated}장으로 업데이트되었습니다.");
                     return;
                 }
+                if (choice is "append")
+                {
+                    var added = await vm.AppendToOpenedStudyAsync(Db);
+                    await Dialogs.ShowAsync(this, "검사에 영상 추가 완료",
+                        $"열려 있는 검사에 {added}장이 추가 저장되었습니다.");
+                    return;
+                }
                 if (choice is not "new") return;
             }
 
             var count = await vm.SaveToDbAsync(Db);
-            await Dialogs.ShowAsync(this, "로컬 DB 저장 완료",
-                $"{count}장이 검사 한 건으로 저장되었습니다.\n[FindDB]에서 검색해 다시 열 수 있습니다.");
+            await Dialogs.ShowAsync(this, "검사 저장 완료",
+                $"{count}장이 검사 한 건으로 저장되었습니다.\n[Worklist → 검사 검색]에서 다시 열 수 있습니다.");
         }
         catch (Exception ex)
         {
@@ -262,58 +293,6 @@ public partial class MainWindow : Window
         }
     }
 
-    // InsExam (VPWinGate 3.2.6) — FindDB 로 연 검사에 새로 불러온 이미지를 추가 저장.
-    private async void OnInsExamClick(object? sender, RoutedEventArgs e)
-    {
-        try
-        {
-            if (ViewModel is not { } vm) return;
-
-            if (vm.ValidateForInsExam() is { } problem)
-            {
-                await Dialogs.ShowAsync(this, "검사에 영상 추가 (InsExam)", problem);
-                return;
-            }
-
-            var added = await vm.AppendToOpenedStudyAsync(Db);
-            await Dialogs.ShowAsync(this, "검사에 영상 추가 완료",
-                $"열려 있는 검사에 {added}장이 추가 저장되었습니다.\n(같은 검사(Study)의 새 시리즈로 기록)");
-        }
-        catch (Exception ex)
-        {
-            Program.LogCrash(ex);
-            await Dialogs.ShowAsync(this, "InsExam 실패",
-                $"추가 저장 중 오류가 발생했습니다.\n\n{ex}");
-        }
-    }
-
-    // 로컬 DB 검색·열기 (VPWinGate FindDB) — 선택한 검사를 뷰어로 불러오고 폼을 채운다.
-    private async void OnFindDbClick(object? sender, RoutedEventArgs e)
-    {
-        try
-        {
-            if (ViewModel is not { } vm) return;
-
-            var picked = await new FindDbWindow(Db).ShowDialog<StudyRecord?>(this);
-            if (picked is null) return;
-
-            vm.CloseAllCommand.Execute(null);
-            await vm.LoadImagesAsync(Db.GetImagePaths(picked.Id));
-            foreach (var item in vm.Images)
-                item.IsFromDb = true; // InsExam 대상은 이후 새로 불러온 이미지만
-            vm.OpenedStudyId = picked.Id;
-            vm.FillExam(picked.Info);
-            vm.StatusText = $"로컬 DB 검사 열림 — {picked.Info.PatientName} ({picked.Info.PatientId}) {picked.ImageCount}장 · " +
-                            "이미지를 더 불러와 [InsExam]을 누르면 이 검사에 추가됩니다";
-        }
-        catch (Exception ex)
-        {
-            Program.LogCrash(ex);
-            await Dialogs.ShowAsync(this, "FindDB 오류",
-                $"로컬 DB 조회 중 오류가 발생했습니다.\n\n{ex}");
-        }
-    }
-
     private void OnCellPressed(object? sender, PointerPressedEventArgs e)
     {
         if (sender is Border { DataContext: ImageItemViewModel item })
@@ -334,4 +313,21 @@ public partial class MainWindow : Window
     private void OnFitClick(object? sender, RoutedEventArgs e) => ApplyToViewers(v => v.Fit());
     private void OnRealSizeClick(object? sender, RoutedEventArgs e) => ApplyToViewers(v => v.RealSize());
     private void OnResetClick(object? sender, RoutedEventArgs e) => ApplyToViewers(v => v.Reset());
+
+    // Magnify 토글 — 돋보기 동안은 드래그 이동이 꺼진다 (VPWinGate 의 도구 모드 개념).
+    private void OnMagnifyClick(object? sender, RoutedEventArgs e)
+    {
+        if (ViewModel is not { } vm) return;
+        vm.MagnifyEnabled = !vm.MagnifyEnabled;
+        vm.StatusText = vm.MagnifyEnabled
+            ? "돋보기 켜짐 — 이미지 위에서 마우스를 움직여 보세요 (해제: Magnify 다시 클릭)"
+            : "돋보기 꺼짐";
+    }
+
+    // Tools > 모든 셀 화면 맞춤.
+    private void OnFitAllClick(object? sender, RoutedEventArgs e)
+    {
+        foreach (var viewer in this.GetVisualDescendants().OfType<ImageViewer>())
+            viewer.Fit();
+    }
 }

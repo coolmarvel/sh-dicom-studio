@@ -11,6 +11,24 @@ domain: development
 
 블록 형식: `## YYYY-MM-DD — 제목` 아래에 **요청/피드백 → 수정 → 검증 → 다음** 순서로 간결하게.
 
+## 2026-08-06 — v1.0.1: 창 통합(Worklist 허브) + Magnify·Tools
+
+- **피드백**: "InsExam·SaveDB·FindDB·Worklist 복잡도만 올라감 — 워크리스트 하나로 통합" +
+  Magnify·Tools 구현.
+- **수정**:
+  - `Controls/StudyBrowserView` — 구 FindDbWindow 내용을 UserControl 로 추출
+    (내부/서버 탭·퀵필터·컨텍스트 메뉴·열기/삭제/전송/JPG). FindDbWindow 삭제.
+  - `WorklistWindow` = 허브: 최상위 탭 [예약 접수]/[검사 검색] — 검사 열기·예약 선택 모두
+    이 창의 결과(object)로 메인에 전달. 오프라인이면 검사 탭으로 시작(예약 탭 진입 차단).
+  - MAIN TOOLS: InsExam·FindDB 타일 제거(11개). **SaveDB 저장 통합** — 열린 검사가 있으면
+    [업데이트/새 이미지만 추가(구 InsExam)/새 검사/취소] 4지선다.
+  - **Magnify**: ImageViewer 에 렌즈(170px 원형, 현재 배율×2.5) — 돋보기 중 Pan 비활성,
+    PointerExited 시 숨김. 툴바 아님 Image Tools 타일 토글.
+  - **Tools**: MenuFlyout — 180° 회전(선택)·선택 모두 해제·모든 셀 Fit.
+- **검증**: build/test 34/34/format ✅ · 허브 두 탭·메인 캡처 ✅ · 스모크 ✅ →
+  인스톨러 1.0.1 바탕화면 교체.
+- **남은 회색 버튼**: VP I/F·VP Scan (장비 필요) 뿐.
+
 ## 2026-08-06 — v1.0.0: 뷰어 오버레이 + FindDB PPW화 (사용자 1.0 선언)
 
 - **피드백**: PPW 워크리스트·PACSPLUS 뷰어 스크린샷 3장 — "서버/로컬 탭 워크리스트처럼",

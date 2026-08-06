@@ -1,14 +1,37 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:i="https://github.com/projektanker/icons.avalonia"
+        xmlns:controls="using:ShDicomStudio.App.Controls"
         x:Class="ShDicomStudio.App.Views.WorklistWindow"
-        Title="Worklist — 검사 예약 조회"
+        Title="Worklist — 예약 · 검사 검색"
         Icon="avares://ShDicomStudio.App/Assets/appicon.ico"
-        Width="820" Height="640"
+        Width="900" Height="680"
         WindowStartupLocation="CenterOwner"
         Background="{StaticResource ChromeBrush}">
 
     <DockPanel Margin="14">
+
+        <!-- 최상위 탭: 예약(오더) / 검사 검색(구 FindDB) — 창 하나로 통합 -->
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="0,0,0,10">
+            <ToggleButton Name="OrderTab" Padding="18,7" CornerRadius="6,6,0,0"
+                          IsChecked="True" Click="OnOrderTabClick"
+                          ToolTip.Tip="검사 예약 조회·접수 — 선택하면 환자정보 자동 입력 (로그인 필요)">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <i:Icon Value="mdi-clipboard-text" FontSize="14"/><TextBlock Text="예약 접수 (Worklist)"/>
+                </StackPanel>
+            </ToggleButton>
+            <ToggleButton Name="BrowseTab" Padding="18,7" CornerRadius="6,6,0,0"
+                          Click="OnBrowseTabClick"
+                          ToolTip.Tip="저장된 검사 검색 — 로컬/서버, 열기·삭제·전송·JPG">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <i:Icon Value="mdi-database-search" FontSize="14"/><TextBlock Text="검사 검색"/>
+                </StackPanel>
+            </ToggleButton>
+        </StackPanel>
+
+        <Panel>
+        <controls:StudyBrowserView Name="BrowserView" IsVisible="False"/>
+        <DockPanel Name="OrderPanel">
 
         <!-- 검색 조건 -->
         <Border DockPanel.Dock="Top" Background="{StaticResource SidebarBrush}"
@@ -119,5 +142,7 @@
                 <ListBox Name="OrderList" Background="Transparent" DoubleTapped="OnRowDoubleTapped"/>
             </DockPanel>
         </Border>
+        </DockPanel>
+        </Panel>
     </DockPanel>
 </Window>

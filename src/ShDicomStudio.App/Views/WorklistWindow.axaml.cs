@@ -32,8 +32,54 @@ public partial class WorklistWindow : Window
         NewModalityCombo.ItemsSource = new List<string> { "OT", "SC", "VP", "US", "ES", "XC", "DX", "CR" };
         NewModalityCombo.SelectedItem = AppSettingsStore.Current.DefaultModality;
 
-        Opened += async (_, _) => await SearchAsync();
+        Opened += async (_, _) =>
+        {
+            if (AppSession.IsOnline && OrderPanel.IsVisible)
+                await SearchAsync();
+        };
     }
+
+    /// <summary>통합 진입점 — 검사 검색 탭(구 FindDB)까지 포함. 오프라인이면 검사 탭으로 시작.</summary>
+    public WorklistWindow(Core.Database.LocalDatabase db, bool startBrowser = false) : this()
+    {
+        BrowserView.Initialize(db);
+        BrowserView.OpenRequested += record => Close(record); // 메인이 받아서 뷰어로 연다
+
+        if (startBrowser || !AppSession.IsOnline)
+            ShowBrowseTab();
+    }
+
+    // ── 최상위 탭 전환 ──────────────────────────────────────────────
+
+    private void ShowOrderTab()
+    {
+        OrderTab.IsChecked = true;
+        BrowseTab.IsChecked = false;
+        OrderPanel.IsVisible = true;
+        BrowserView.IsVisible = false;
+    }
+
+    private void ShowBrowseTab()
+    {
+        OrderTab.IsChecked = false;
+        BrowseTab.IsChecked = true;
+        OrderPanel.IsVisible = false;
+        BrowserView.IsVisible = true;
+    }
+
+    private async void OnOrderTabClick(object? sender, RoutedEventArgs e)
+    {
+        if (!AppSession.IsOnline)
+        {
+            ShowBrowseTab();
+            await Dialogs.ShowAsync(this, "예약 접수", "예약(Worklist)은 서버에 로그인해야 사용할 수 있습니다.");
+            return;
+        }
+        ShowOrderTab();
+        await SearchAsync();
+    }
+
+    private void OnBrowseTabClick(object? sender, RoutedEventArgs e) => ShowBrowseTab();
 
     private async System.Threading.Tasks.Task SearchAsync()
     {

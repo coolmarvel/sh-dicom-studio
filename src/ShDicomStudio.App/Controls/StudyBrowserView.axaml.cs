@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,26 +7,34 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using ShDicomStudio.App.ViewModels;
+using ShDicomStudio.App.Views;
 using ShDicomStudio.Core.Database;
 using ShDicomStudio.Core.Imaging;
 
-namespace ShDicomStudio.App.Views;
+namespace ShDicomStudio.App.Controls;
 
 /// <summary>
-/// 로컬 DB 검색 창 — [열기]를 누르면 선택한 StudyRecord 를 결과로 돌려주고 닫힌다
-/// (ShowDialog&lt;StudyRecord?&gt;). 삭제는 확인 대화상자를 거친다.
+/// 검사 검색 브라우저 (구 FindDB — 통합 Worklist 창의 '검사 검색' 탭 내용물).
+/// [내부(로컬)]/[서버] 탭 · 검색조건 · 퀵필터 · 결과 그리드 · 열기/삭제/전송/JPG.
+/// 열기 시 OpenRequested 이벤트로 StudyRecord 를 넘긴다 (호스트 창이 닫고 메인에 전달).
 /// </summary>
-public partial class FindDbWindow : Window
+public partial class StudyBrowserView : UserControl
 {
-    private FindDbViewModel? Vm => DataContext as FindDbViewModel;
     private LocalDatabase? _db;
 
-    public FindDbWindow()
+    /// <summary>로컬 검사 [열기] — 호스트 창이 받아 메인 뷰어로 연다.</summary>
+    public event Action<StudyRecord>? OpenRequested;
+
+    private FindDbViewModel? Vm => DataContext as FindDbViewModel;
+
+    private Window Owner => (Window)TopLevel.GetTopLevel(this)!;
+
+    public StudyBrowserView()
     {
         InitializeComponent();
     }
 
-    public FindDbWindow(LocalDatabase db) : this()
+    public void Initialize(LocalDatabase db)
     {
         _db = db;
         DataContext = new FindDbViewModel(db);
@@ -46,7 +55,7 @@ public partial class FindDbWindow : Window
         {
             ServerTab.IsChecked = false;
             LocalTab.IsChecked = true;
-            await Dialogs.ShowAsync(this, "서버 검색", "서버에 로그인해야 사용할 수 있습니다.");
+            await Dialogs.ShowAsync(Owner, "서버 검색", "서버에 로그인해야 사용할 수 있습니다.");
             return;
         }
         ServerTab.IsChecked = true;
@@ -54,21 +63,20 @@ public partial class FindDbWindow : Window
         vm.SearchServer = true;
     }
 
-    private void OnOpenClick(object? sender, RoutedEventArgs e) => OpenSelected();
-
     private void OnRowDoubleTapped(object? sender, TappedEventArgs e) => OpenSelected();
+
+    private void OnOpenClick(object? sender, RoutedEventArgs e) => OpenSelected();
 
     private async void OpenSelected()
     {
         if (Vm?.SelectedRow is not { } row) return;
         if (row.IsServer)
         {
-            await Dialogs.ShowAsync(this, "서버 검사",
-                "서버 검색 결과는 조회 전용입니다 — DICOM 파일은 저장한 PC 의 로컬 DB 에 있습니다.\n" +
-                "(파일 서버 보관은 3차에서 결정)");
+            await Dialogs.ShowAsync(Owner, "서버 검사",
+                "서버 검색 결과는 조회 전용입니다 — DICOM 파일은 저장한 PC 의 로컬 DB 에 있습니다.");
             return;
         }
-        Close(row.Record);
+        OpenRequested?.Invoke(row.Record);
     }
 
     private async void OnDeleteClick(object? sender, RoutedEventArgs e)
@@ -76,11 +84,11 @@ public partial class FindDbWindow : Window
         if (Vm is not { SelectedRow: { } row } vm) return;
         if (row.IsServer)
         {
-            await Dialogs.ShowAsync(this, "서버 검사", "서버 검색 결과는 조회 전용입니다 — 삭제할 수 없습니다.");
+            await Dialogs.ShowAsync(Owner, "서버 검사", "서버 검색 결과는 조회 전용입니다 — 삭제할 수 없습니다.");
             return;
         }
 
-        var ok = await Dialogs.ConfirmAsync(this, "검사 삭제",
+        var ok = await Dialogs.ConfirmAsync(Owner, "검사 삭제",
             $"'{row.PatientName}' ({row.PatientId}) 검사 {row.CountText}을 삭제할까요?\n" +
             "DICOM 파일까지 함께 삭제되며 복원할 수 없습니다.");
         if (!ok) return;
@@ -88,41 +96,19 @@ public partial class FindDbWindow : Window
         await vm.DeleteSelectedAsync();
     }
 
-    private void OnCloseClick(object? sender, RoutedEventArgs e) => Close(null);
-
-    // 검사 보내기 (PPW 검사 보내기 모달) — 이 검사의 DICOM 파일들을 C-STORE 로 전송.
-    private async void OnSendClick(object? sender, RoutedEventArgs e)
-    {
-        if (Vm?.SelectedRow is not { } row || _db is not { } db) return;
-        if (row.IsServer)
-        {
-            await Dialogs.ShowAsync(this, "검사 보내기", "서버 검색 결과는 파일이 로컬에 없어 전송할 수 없습니다.");
-            return;
-        }
-
-        var paths = db.GetImagePaths(row.Record.Id);
-        if (paths.Count == 0)
-        {
-            await Dialogs.ShowAsync(this, "검사 보내기", "이 검사에 전송할 DICOM 파일이 없습니다.");
-            return;
-        }
-
-        await new SendWindow(paths, $"{row.PatientName} ({row.PatientId})").ShowDialog<bool?>(this);
-    }
-
-    // 검사 전체를 JPG 로 내보내기 (정보 오버레이) — 저장 당시 환자정보를 그대로 얹는다.
+    // 검사 전체를 JPG 로 내보내기 (정보 오버레이).
     private async void OnExportJpegClick(object? sender, RoutedEventArgs e)
     {
         if (Vm?.SelectedRow is not { } row || _db is not { } db) return;
         if (row.IsServer)
         {
-            await Dialogs.ShowAsync(this, "서버 검사", "서버 검색 결과는 조회 전용입니다 — 파일이 로컬에 없어 내보낼 수 없습니다.");
+            await Dialogs.ShowAsync(Owner, "서버 검사", "파일이 로컬에 없어 내보낼 수 없습니다.");
             return;
         }
 
         try
         {
-            var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            var folders = await Owner.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
             {
                 Title = "JPG 저장 폴더 선택",
                 AllowMultiple = false,
@@ -145,12 +131,32 @@ public partial class FindDbWindow : Window
                 saved++;
             }
 
-            await Dialogs.ShowAsync(this, "JPG 내보내기 완료", $"{saved}장이 저장되었습니다.\n\n{folder}");
+            await Dialogs.ShowAsync(Owner, "JPG 내보내기 완료", $"{saved}장이 저장되었습니다.\n\n{folder}");
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
             Program.LogCrash(ex);
-            await Dialogs.ShowAsync(this, "JPG 내보내기 실패", $"내보내기 중 오류가 발생했습니다.\n\n{ex}");
+            await Dialogs.ShowAsync(Owner, "JPG 내보내기 실패", $"내보내기 중 오류가 발생했습니다.\n\n{ex}");
         }
+    }
+
+    // 검사 보내기 (C-STORE).
+    private async void OnSendClick(object? sender, RoutedEventArgs e)
+    {
+        if (Vm?.SelectedRow is not { } row || _db is not { } db) return;
+        if (row.IsServer)
+        {
+            await Dialogs.ShowAsync(Owner, "검사 보내기", "서버 검색 결과는 파일이 로컬에 없어 전송할 수 없습니다.");
+            return;
+        }
+
+        var paths = db.GetImagePaths(row.Record.Id);
+        if (paths.Count == 0)
+        {
+            await Dialogs.ShowAsync(Owner, "검사 보내기", "이 검사에 전송할 DICOM 파일이 없습니다.");
+            return;
+        }
+
+        await new SendWindow(paths, $"{row.PatientName} ({row.PatientId})").ShowDialog<bool?>(Owner);
     }
 }

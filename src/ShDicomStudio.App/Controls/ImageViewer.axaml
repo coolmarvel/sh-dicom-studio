@@ -10,5 +10,14 @@
     <Canvas Name="PART_Host">
         <Image Name="PART_Image" Stretch="None" RenderTransformOrigin="0,0"
                Canvas.Left="0" Canvas.Top="0"/>
+        <!-- 돋보기 렌즈 (Magnify 모드) — 포인터를 따라다니며 확대 영역을 보여준다 -->
+        <Border Name="PART_Lens" Width="170" Height="170" IsVisible="False"
+                ClipToBounds="True" CornerRadius="85"
+                BorderBrush="White" BorderThickness="2" Background="Black">
+            <Canvas>
+                <Image Name="PART_LensImage" Stretch="None" RenderTransformOrigin="0,0"
+                       Canvas.Left="0" Canvas.Top="0"/>
+            </Canvas>
+        </Border>
     </Canvas>
 </UserControl>

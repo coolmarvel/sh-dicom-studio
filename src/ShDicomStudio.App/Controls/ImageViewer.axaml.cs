@@ -22,6 +22,19 @@ public partial class ImageViewer : UserControl
         set => SetValue(SourceProperty, value);
     }
 
+    /// <summary>돋보기 모드 (VPWinGate 3.2.20 Magnify) — 켜면 포인터에 렌즈가 따라다닌다.</summary>
+    public static readonly StyledProperty<bool> MagnifyEnabledProperty =
+        AvaloniaProperty.Register<ImageViewer, bool>(nameof(MagnifyEnabled));
+
+    public bool MagnifyEnabled
+    {
+        get => GetValue(MagnifyEnabledProperty);
+        set => SetValue(MagnifyEnabledProperty, value);
+    }
+
+    private const double LensZoomFactor = 2.5;
+    private const double LensSize = 170;
+
     private const double MinScale = 0.02;
     private const double MaxScale = 50.0;
 
@@ -40,6 +53,7 @@ public partial class ImageViewer : UserControl
         PointerPressed += OnPointerPressed;
         PointerMoved += OnPointerMoved;
         PointerReleased += OnPointerReleased;
+        PointerExited += (_, _) => PART_Lens.IsVisible = false;
         SizeChanged += (_, _) => { if (_fitMode) Fit(); };
     }
 
@@ -49,7 +63,12 @@ public partial class ImageViewer : UserControl
         if (change.Property == SourceProperty)
         {
             PART_Image.Source = Source;
+            PART_LensImage.Source = Source;
             Fit(); // 새 이미지는 항상 Fit 으로 시작
+        }
+        else if (change.Property == MagnifyEnabledProperty && !MagnifyEnabled)
+        {
+            PART_Lens.IsVisible = false;
         }
     }
 
@@ -108,7 +127,7 @@ public partial class ImageViewer : UserControl
 
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (Source is null) return;
+        if (Source is null || MagnifyEnabled) return; // 돋보기 모드에서는 이동(Pan) 대신 렌즈만
         _panning = true;
         _panStart = e.GetPosition(this);
         _panStartMatrix = _matrix;
@@ -117,9 +136,35 @@ public partial class ImageViewer : UserControl
 
     private void OnPointerMoved(object? sender, PointerEventArgs e)
     {
+        if (MagnifyEnabled && Source is not null)
+        {
+            UpdateLens(e.GetPosition(this));
+            return;
+        }
+
         if (!_panning) return;
         var delta = e.GetPosition(this) - _panStart;
         Apply(_panStartMatrix * Matrix.CreateTranslation(delta.X, delta.Y), fitMode: false);
+    }
+
+    /// <summary>렌즈를 포인터 중심에 놓고, 그 지점의 이미지 좌표를 LensZoomFactor 배로 보여준다.</summary>
+    private void UpdateLens(Point pointer)
+    {
+        if (!_matrix.TryInvert(out var inverse))
+            return;
+
+        var imagePoint = inverse.Transform(pointer); // 화면 → 이미지 좌표
+        var zoom = _matrix.M11 * LensZoomFactor;
+
+        PART_Lens.IsVisible = true;
+        Canvas.SetLeft(PART_Lens, pointer.X - LensSize / 2);
+        Canvas.SetTop(PART_Lens, pointer.Y - LensSize / 2);
+
+        // 이미지 좌표 imagePoint 가 렌즈 중앙에 오도록
+        var lensMatrix = Matrix.CreateTranslation(-imagePoint.X, -imagePoint.Y)
+                         * Matrix.CreateScale(zoom, zoom)
+                         * Matrix.CreateTranslation(LensSize / 2, LensSize / 2);
+        PART_LensImage.RenderTransform = new MatrixTransform(lensMatrix);
     }
 
     private void OnPointerReleased(object? sender, PointerReleasedEventArgs e)

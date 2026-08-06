@@ -99,18 +99,13 @@
                             <Button Classes="tile" Click="OnSaveClick" ToolTip.Tip="화면의 영상을 DICOM 파일로 저장">
                                 <StackPanel><i:Icon Value="mdi-content-save"/><TextBlock Text="SaveAs"/></StackPanel>
                             </Button>
-                            <Button Classes="tile" Click="OnWorklistClick" ToolTip.Tip="검사 예약 조회 — 선택하면 환자정보 자동 입력 (로그인 필요)">
+                            <Button Classes="tile" Click="OnWorklistClick"
+                                    ToolTip.Tip="예약 접수 + 검사 검색(로컬/서버) 통합 창">
                                 <StackPanel><i:Icon Value="mdi-clipboard-text"/><TextBlock Text="Worklist"/></StackPanel>
                             </Button>
-                            <Button Classes="tile" Click="OnSaveDbClick" ToolTip.Tip="화면의 영상·정보를 로컬 DB에 검사로 저장">
+                            <Button Classes="tile" Click="OnSaveDbClick"
+                                    ToolTip.Tip="검사 저장 — 열린 검사가 있으면 업데이트/추가/새 검사 선택">
                                 <StackPanel><i:Icon Value="mdi-database-plus"/><TextBlock Text="SaveDB"/></StackPanel>
-                            </Button>
-                            <Button Classes="tile" Click="OnInsExamClick"
-                                    ToolTip.Tip="FindDB로 연 검사에 새 영상 추가 저장">
-                                <StackPanel><i:Icon Value="mdi-account-plus"/><TextBlock Text="InsExam"/></StackPanel>
-                            </Button>
-                            <Button Classes="tile" Click="OnFindDbClick" ToolTip.Tip="로컬 DB 검색·열기·삭제">
-                                <StackPanel><i:Icon Value="mdi-database-search"/><TextBlock Text="FindDB"/></StackPanel>
                             </Button>
                             <Button Classes="tile" Click="OnSendTileClick" ToolTip.Tip="화면의 영상+정보로 DICOM을 만들어 PACS로 전송">
                                 <StackPanel><i:Icon Value="mdi-send"/><TextBlock Text="Send"/></StackPanel>
@@ -248,7 +243,8 @@
                             <Button Classes="tile" IsEnabled="False" ToolTip.Tip="기본 내장 — 휠로 확대/축소">
                                 <StackPanel><i:Icon Value="mdi-magnify-plus"/><TextBlock Text="Zoom"/></StackPanel>
                             </Button>
-                            <Button Classes="tile" IsEnabled="False" ToolTip.Tip="돋보기 — 예정">
+                            <Button Classes="tile" Click="OnMagnifyClick"
+                                    ToolTip.Tip="돋보기 — 켜면 이미지 위에서 렌즈가 따라다닙니다 (다시 누르면 해제)">
                                 <StackPanel><i:Icon Value="mdi-loupe"/><TextBlock Text="Magnify"/></StackPanel>
                             </Button>
                             <Button Classes="tile" Click="OnRealSizeClick" ToolTip.Tip="실제 픽셀 크기로 보기">
@@ -260,8 +256,15 @@
                             <Button Classes="tile" Click="OnResetClick" ToolTip.Tip="보기 초기화">
                                 <StackPanel><i:Icon Value="mdi-restore"/><TextBlock Text="Reset"/></StackPanel>
                             </Button>
-                            <Button Classes="tile" IsEnabled="False" ToolTip.Tip="장비 폴더에서 이미지 획득 — 보류">
-                                <StackPanel><i:Icon Value="mdi-scanner"/><TextBlock Text="VP Scan"/></StackPanel>
+                            <Button Classes="tile" ToolTip.Tip="부가 도구 (180° 회전 · 선택 해제 · 전체 맞춤)">
+                                <Button.Flyout>
+                                    <MenuFlyout>
+                                        <MenuItem Header="180° 회전 (선택 이미지)" Command="{Binding Rotate180Command}"/>
+                                        <MenuItem Header="선택 모두 해제" Command="{Binding UnselectAllCommand}"/>
+                                        <MenuItem Header="모든 셀 화면 맞춤 (Fit)" Click="OnFitAllClick"/>
+                                    </MenuFlyout>
+                                </Button.Flyout>
+                                <StackPanel><i:Icon Value="mdi-tools"/><TextBlock Text="Tools"/></StackPanel>
                             </Button>
                         </UniformGrid>
                     </StackPanel>
@@ -359,7 +362,8 @@
                             <Border Classes="cell" Classes.selected="{Binding IsSelected}"
                                     PointerPressed="OnCellPressed" Background="{StaticResource ViewerBgBrush}">
                                 <Grid>
-                                    <controls:ImageViewer Source="{Binding Bitmap}"/>
+                                    <controls:ImageViewer Source="{Binding Bitmap}"
+                                                          MagnifyEnabled="{ReflectionBinding $parent[Window].DataContext.MagnifyEnabled}"/>
 
                                     <!-- 오버레이 (PACSPLUS 뷰어 배치: TL 환자 · TR 검사 · BL IM · BR 담당의) -->
                                     <StackPanel Margin="10,8" HorizontalAlignment="Left" VerticalAlignment="Top"
