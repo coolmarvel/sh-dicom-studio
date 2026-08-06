@@ -4,7 +4,7 @@
         x:Class="ShDicomStudio.App.Views.WorklistWindow"
         Title="Worklist — 검사 예약 조회"
         Icon="avares://ShDicomStudio.App/Assets/appicon.ico"
-        Width="820" Height="560"
+        Width="820" Height="640"
         WindowStartupLocation="CenterOwner"
         Background="{StaticResource ChromeBrush}">
 
@@ -35,19 +35,50 @@
         <Border DockPanel.Dock="Bottom" Background="{StaticResource SidebarBrush}"
                 BorderBrush="{StaticResource RuleBrush}" BorderThickness="1"
                 CornerRadius="8" Padding="12" Margin="0,10,0,0">
-            <StackPanel Spacing="8">
+            <StackPanel Spacing="10">
                 <TextBlock Classes="section" Text="예약 등록 (접수)"/>
-                <Grid ColumnDefinitions="110,6,130,6,60,6,130,6,90,6,*,6,Auto" RowDefinitions="Auto">
-                    <TextBox Grid.Column="0" Name="NewPidBox" Watermark="환자 ID *"/>
-                    <TextBox Grid.Column="2" Name="NewNameBox" Watermark="이름 *"/>
-                    <ComboBox Grid.Column="4" Name="NewSexCombo" HorizontalAlignment="Stretch"/>
-                    <CalendarDatePicker Grid.Column="6" Name="NewBirthPicker" Watermark="생년월일"
-                                        SelectedDateFormat="Custom" CustomDateFormatString="yyyy-MM-dd"
-                                        HorizontalAlignment="Stretch"/>
-                    <ComboBox Grid.Column="8" Name="NewModalityCombo" HorizontalAlignment="Stretch"/>
-                    <TextBox Grid.Column="10" Name="NewDescBox" Watermark="검사 설명"/>
-                    <Button Grid.Column="12" Content="등록" Click="OnCreateClick" Padding="14,6"/>
+
+                <!-- 1줄: 환자 ID · 이름 · 성별 -->
+                <Grid ColumnDefinitions="*,8,*,8,110">
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Classes="field" Text="환자 ID *"/>
+                        <TextBox Name="NewPidBox"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Classes="field" Text="이름 *"/>
+                        <TextBox Name="NewNameBox"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="4">
+                        <TextBlock Classes="field" Text="성별"/>
+                        <ComboBox Name="NewSexCombo" HorizontalAlignment="Stretch"/>
+                    </StackPanel>
                 </Grid>
+
+                <!-- 2줄: 생년월일 · Modality -->
+                <Grid ColumnDefinitions="*,8,*">
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Classes="field" Text="생년월일"/>
+                        <CalendarDatePicker Name="NewBirthPicker" Watermark="날짜 선택"
+                                            SelectedDateFormat="Custom" CustomDateFormatString="yyyy-MM-dd"
+                                            HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Classes="field" Text="Modality"/>
+                        <ComboBox Name="NewModalityCombo" HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- 3줄: 검사 설명 (전체 폭) + 등록 -->
+                <Grid ColumnDefinitions="*,8,Auto">
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Classes="field" Text="검사 설명"/>
+                        <TextBox Name="NewDescBox"/>
+                    </StackPanel>
+                    <Button Grid.Column="2" Content="등록" Click="OnCreateClick" Padding="20,6"
+                            VerticalAlignment="Bottom"
+                            Background="{StaticResource AccentBrush}" Foreground="White"/>
+                </Grid>
+
                 <TextBlock Name="StatusBlock" FontSize="11" Foreground="#FFE53935"
                            TextWrapping="Wrap" IsVisible="False"/>
             </StackPanel>
