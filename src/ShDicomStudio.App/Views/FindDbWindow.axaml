@@ -1,0 +1,102 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:ShDicomStudio.App.ViewModels"
+        xmlns:i="https://github.com/projektanker/icons.avalonia"
+        x:Class="ShDicomStudio.App.Views.FindDbWindow"
+        x:DataType="vm:FindDbViewModel"
+        Title="로컬 데이터베이스 (FindDB)"
+        Icon="avares://ShDicomStudio.App/Assets/appicon.ico"
+        Width="860" Height="560"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource ChromeBrush}">
+
+    <DockPanel Margin="14">
+
+        <!-- 검색 조건 -->
+        <Border DockPanel.Dock="Top" Background="{StaticResource SidebarBrush}"
+                BorderBrush="{StaticResource RuleBrush}" BorderThickness="1"
+                CornerRadius="8" Padding="12" Margin="0,0,0,10">
+            <Grid ColumnDefinitions="*,8,*,8,110,8,150,8,150,8,Auto,4,Auto" RowDefinitions="Auto,4,Auto">
+                <TextBlock Grid.Row="0" Grid.Column="0" Classes="field" Text="Patient ID"/>
+                <TextBox   Grid.Row="2" Grid.Column="0" Text="{Binding PatientId}"/>
+                <TextBlock Grid.Row="0" Grid.Column="2" Classes="field" Text="환자 이름"/>
+                <TextBox   Grid.Row="2" Grid.Column="2" Text="{Binding PatientName}"/>
+                <TextBlock Grid.Row="0" Grid.Column="4" Classes="field" Text="Modality"/>
+                <ComboBox  Grid.Row="2" Grid.Column="4" ItemsSource="{Binding ModalityOptions}"
+                           SelectedItem="{Binding Modality}" HorizontalAlignment="Stretch"/>
+                <TextBlock Grid.Row="0" Grid.Column="6" Classes="field" Text="검사일 (부터)"/>
+                <CalendarDatePicker Grid.Row="2" Grid.Column="6" SelectedDate="{Binding FromDate}"
+                                    SelectedDateFormat="Custom" CustomDateFormatString="yyyy-MM-dd"
+                                    HorizontalAlignment="Stretch" Watermark="전체"/>
+                <TextBlock Grid.Row="0" Grid.Column="8" Classes="field" Text="검사일 (까지)"/>
+                <CalendarDatePicker Grid.Row="2" Grid.Column="8" SelectedDate="{Binding ToDate}"
+                                    SelectedDateFormat="Custom" CustomDateFormatString="yyyy-MM-dd"
+                                    HorizontalAlignment="Stretch" Watermark="전체"/>
+                <Button Grid.Row="2" Grid.Column="10" Command="{Binding SearchCommand}"
+                        Background="{StaticResource AccentBrush}" Foreground="White" Padding="14,6">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <i:Icon Value="mdi-magnify" FontSize="14"/><TextBlock Text="검색"/>
+                    </StackPanel>
+                </Button>
+                <Button Grid.Row="2" Grid.Column="12" Command="{Binding ResetCommand}" Padding="14,6"
+                        Content="초기화"/>
+            </Grid>
+        </Border>
+
+        <!-- 하단 버튼 -->
+        <DockPanel DockPanel.Dock="Bottom" Margin="0,10,0,0">
+            <TextBlock DockPanel.Dock="Left" Text="{Binding CountText}"
+                       Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center"/>
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                <Button Name="OpenButton" Background="{StaticResource AccentBrush}" Foreground="White"
+                        Padding="16,7" Click="OnOpenClick">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <i:Icon Value="mdi-folder-open" FontSize="14"/><TextBlock Text="열기"/>
+                    </StackPanel>
+                </Button>
+                <Button Padding="16,7" Click="OnDeleteClick" Content="삭제"/>
+                <Button Padding="16,7" Click="OnCloseClick" Content="닫기"/>
+            </StackPanel>
+        </DockPanel>
+
+        <!-- 결과 목록 -->
+        <Border Background="{StaticResource SidebarBrush}" BorderBrush="{StaticResource RuleBrush}"
+                BorderThickness="1" CornerRadius="8" Padding="4">
+            <DockPanel>
+                <Border DockPanel.Dock="Top" Padding="8,6" BorderBrush="{StaticResource RuleBrush}"
+                        BorderThickness="0,0,0,1">
+                    <Grid ColumnDefinitions="110,120,140,50,70,*,60,120">
+                        <TextBlock Grid.Column="0" Classes="field" Text="검사일" Margin="0"/>
+                        <TextBlock Grid.Column="1" Classes="field" Text="Patient ID" Margin="0"/>
+                        <TextBlock Grid.Column="2" Classes="field" Text="이름" Margin="0"/>
+                        <TextBlock Grid.Column="3" Classes="field" Text="성별" Margin="0"/>
+                        <TextBlock Grid.Column="4" Classes="field" Text="Modality" Margin="0"/>
+                        <TextBlock Grid.Column="5" Classes="field" Text="검사 설명" Margin="0"/>
+                        <TextBlock Grid.Column="6" Classes="field" Text="장수" Margin="0"/>
+                        <TextBlock Grid.Column="7" Classes="field" Text="저장 시각" Margin="0"/>
+                    </Grid>
+                </Border>
+                <ListBox ItemsSource="{Binding Results}" SelectedItem="{Binding SelectedRow}"
+                         Background="Transparent" DoubleTapped="OnRowDoubleTapped">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:StudyRowViewModel">
+                            <Grid ColumnDefinitions="110,120,140,50,70,*,60,120">
+                                <TextBlock Grid.Column="0" Text="{Binding StudyDateText}" FontSize="12"/>
+                                <TextBlock Grid.Column="1" Text="{Binding PatientId}" FontSize="12"/>
+                                <TextBlock Grid.Column="2" Text="{Binding PatientName}" FontSize="12"
+                                           TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Grid.Column="3" Text="{Binding Sex}" FontSize="12"/>
+                                <TextBlock Grid.Column="4" Text="{Binding Modality}" FontSize="12"/>
+                                <TextBlock Grid.Column="5" Text="{Binding Description}" FontSize="12"
+                                           TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Grid.Column="6" Text="{Binding CountText}" FontSize="12"/>
+                                <TextBlock Grid.Column="7" Text="{Binding CreatedAtText}" FontSize="12"
+                                           Foreground="{StaticResource MutedTextBrush}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Border>
+    </DockPanel>
+</Window>

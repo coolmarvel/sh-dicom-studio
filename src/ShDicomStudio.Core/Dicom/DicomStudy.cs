@@ -16,6 +16,9 @@ public sealed class DicomStudy
     private readonly DicomUID _studyUid = DicomUIDGenerator.GenerateDerivedFromUUID();
     private readonly DicomUID _seriesUid = DicomUIDGenerator.GenerateDerivedFromUUID();
 
+    /// <summary>이 저장 묶음(검사)의 Study Instance UID — 로컬 DB 의 검사 식별자로도 쓴다.</summary>
+    public string StudyUid => _studyUid.UID;
+
     public DicomFile Create(byte[] encodedImage, ExamInfo info, int instanceNumber)
     {
         using var image = Image.Load<Rgb24>(encodedImage);

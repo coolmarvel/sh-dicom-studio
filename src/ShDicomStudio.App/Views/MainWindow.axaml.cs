@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -6,6 +7,7 @@ using Avalonia.Platform.Storage;
 using Avalonia.VisualTree;
 using ShDicomStudio.App.Controls;
 using ShDicomStudio.App.ViewModels;
+using ShDicomStudio.Core.Database;
 
 namespace ShDicomStudio.App.Views;
 
@@ -17,6 +19,16 @@ public partial class MainWindow : Window
     };
 
     private readonly Flyout _layoutFlyout;
+
+    // 로컬 DB 는 처음 쓸 때 열고 앱이 닫힐 때 정리한다 (%AppData%/sh-dicom-studio).
+    private LocalDatabase? _db;
+    private LocalDatabase Db => _db ??= new LocalDatabase();
+
+    protected override void OnClosed(EventArgs e)
+    {
+        _db?.Dispose();
+        base.OnClosed(e);
+    }
 
     public MainWindow()
     {
@@ -96,6 +108,54 @@ public partial class MainWindow : Window
             Program.LogCrash(ex);
             await Dialogs.ShowAsync(this, "DICOM 저장 실패",
                 $"저장 중 오류가 발생했습니다. 아래 내용을 개발자에게 전달해 주세요.\n\n{ex}");
+        }
+    }
+
+    // 로컬 DB 저장 (VPWinGate SaveDB) — 검사 한 건으로 보관, FindDB 로 다시 연다.
+    private async void OnSaveDbClick(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (ViewModel is not { } vm) return;
+
+            if (vm.ValidateForSave() is { } problem)
+            {
+                await Dialogs.ShowAsync(this, "로컬 DB 저장", problem);
+                return;
+            }
+
+            var count = await vm.SaveToDbAsync(Db);
+            await Dialogs.ShowAsync(this, "로컬 DB 저장 완료",
+                $"{count}장이 검사 한 건으로 저장되었습니다.\n[FindDB]에서 검색해 다시 열 수 있습니다.");
+        }
+        catch (Exception ex)
+        {
+            Program.LogCrash(ex);
+            await Dialogs.ShowAsync(this, "로컬 DB 저장 실패",
+                $"저장 중 오류가 발생했습니다. 아래 내용을 개발자에게 전달해 주세요.\n\n{ex}");
+        }
+    }
+
+    // 로컬 DB 검색·열기 (VPWinGate FindDB) — 선택한 검사를 뷰어로 불러오고 폼을 채운다.
+    private async void OnFindDbClick(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (ViewModel is not { } vm) return;
+
+            var picked = await new FindDbWindow(Db).ShowDialog<StudyRecord?>(this);
+            if (picked is null) return;
+
+            vm.CloseAllCommand.Execute(null);
+            await vm.LoadImagesAsync(Db.GetImagePaths(picked.Id));
+            vm.FillExam(picked.Info);
+            vm.StatusText = $"로컬 DB 검사 열림 — {picked.Info.PatientName} ({picked.Info.PatientId}) {picked.ImageCount}장";
+        }
+        catch (Exception ex)
+        {
+            Program.LogCrash(ex);
+            await Dialogs.ShowAsync(this, "FindDB 오류",
+                $"로컬 DB 조회 중 오류가 발생했습니다.\n\n{ex}");
         }
     }
 

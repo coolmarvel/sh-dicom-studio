@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using ShDicomStudio.Core.Database;
 using ShDicomStudio.Core.Dicom;
 using ShDicomStudio.Core.Imaging;
 
@@ -73,6 +74,32 @@ public partial class MainViewModel : ViewModelBase
         StatusText = skipped == 0
             ? $"{supported.Count}장 불러옴"
             : $"{supported.Count}장 불러옴 (미지원 파일 {skipped}개 건너뜀)";
+
+        // .dcm 을 열었고 폼이 비어 있으면 그 헤더로 환자정보를 채운다 (재태깅 시나리오 —
+        // 익명으로 변환해 둔 DICOM 을 다시 열어 정보를 수정 후 새로 저장하는 흐름).
+        if (string.IsNullOrWhiteSpace(Exam.PatientId)
+            && supported.FirstOrDefault(p => p.EndsWith(".dcm", StringComparison.OrdinalIgnoreCase)) is { } dcmPath
+            && await Task.Run(() => DicomHeaderReader.TryRead(dcmPath)) is { } header)
+        {
+            FillExam(header);
+            StatusText += " · DICOM 헤더의 환자정보를 입력란에 채움";
+        }
+    }
+
+    /// <summary>ExamInfo 값으로 입력 폼을 채운다 (FindDB 열기·DICOM 헤더 읽기에서 사용).</summary>
+    public void FillExam(ExamInfo info)
+    {
+        Exam.PatientId = info.PatientId == "ANONYMOUS" ? "" : info.PatientId;
+        Exam.PatientName = info.PatientName == "ANONYMOUS" ? "" : info.PatientName;
+        Exam.Sex = info.Sex is "M" or "F" or "O" ? info.Sex : "-";
+        Exam.Age = info.Age;
+        if (Exam.ModalityOptions.Contains(info.Modality)) Exam.Modality = info.Modality;
+        Exam.StudyDate = info.StudyDate ?? DateTime.Today;
+        Exam.BirthDate = info.BirthDate;
+        Exam.StudyDescription = info.StudyDescription;
+        Exam.AccessionNumber = info.AccessionNumber;
+        Exam.ReferringPhysician = info.ReferringPhysician;
+        Exam.Comment = info.Comment;
     }
 
     /// <summary>장수에 따라 보기 편한 그리드를 자동 선택 (수동 픽커로 언제든 변경 가능).</summary>
@@ -251,40 +278,65 @@ public partial class MainViewModel : ViewModelBase
         return null;
     }
 
-    /// <summary>선택(없으면 전체) 이미지를 DICOM 으로 저장하고 저장 장수를 반환.</summary>
+    /// <summary>입력 폼의 현재 값을 ExamInfo 스냅샷으로.</summary>
+    private ExamInfo BuildExamInfo() => new()
+    {
+        PatientId = Exam.PatientId.Trim(),
+        PatientName = Exam.PatientName.Trim(),
+        Sex = Exam.Sex,
+        Age = Exam.Age.Trim(),
+        Modality = Exam.Modality,
+        StudyDate = Exam.StudyDate,
+        BirthDate = Exam.BirthDate,
+        StudyDescription = Exam.StudyDescription.Trim(),
+        AccessionNumber = Exam.AccessionNumber.Trim(),
+        ReferringPhysician = Exam.ReferringPhysician.Trim(),
+        Comment = Exam.Comment.Trim(),
+        Anonymous = Exam.IsAnonymous,
+    };
+
+    /// <summary>선택(없으면 전체) 이미지를 폴더에 DICOM 으로 저장하고 저장 장수를 반환.</summary>
     public async Task<int> SaveDicomAsync(string folder)
     {
         var targets = SelectedItems() is { Count: > 0 } sel ? sel : Images.ToList();
-
-        var info = new ExamInfo
-        {
-            PatientId = Exam.PatientId.Trim(),
-            PatientName = Exam.PatientName.Trim(),
-            Sex = Exam.Sex,
-            Age = Exam.Age.Trim(),
-            Modality = Exam.Modality,
-            StudyDate = Exam.StudyDate,
-            BirthDate = Exam.BirthDate,
-            StudyDescription = Exam.StudyDescription.Trim(),
-            AccessionNumber = Exam.AccessionNumber.Trim(),
-            ReferringPhysician = Exam.ReferringPhysician.Trim(),
-            Comment = Exam.Comment.Trim(),
-            Anonymous = Exam.IsAnonymous,
-        };
+        var info = BuildExamInfo();
 
         var prefix = info.Anonymous || info.PatientId.Length == 0 ? "IMG" : info.PatientId;
+
+        // 같은 폴더에 같은 접두사 파일이 이미 있으면 그 다음 번호부터 — 조용한 덮어쓰기 방지.
+        var fileNumber = Directory.GetFiles(folder, $"{prefix}_*.dcm")
+            .Select(f => Path.GetFileNameWithoutExtension(f).Split('_').Last())
+            .Select(s => int.TryParse(s, out var n) ? n : 0)
+            .DefaultIfEmpty(0)
+            .Max();
+
         var study = new DicomStudy();
         var saved = 0;
         foreach (var item in targets)
         {
-            var number = saved + 1;
-            var path = Path.Combine(folder, $"{prefix}_{number:00000}.dcm");
-            await Task.Run(() => study.Create(item.EncodedBytes, info, number).Save(path));
+            var instanceNumber = saved + 1; // DICOM InstanceNumber 는 이 검사 안에서 1부터
+            fileNumber++;
+            var path = Path.Combine(folder, $"{prefix}_{fileNumber:00000}.dcm");
+            await Task.Run(() => study.Create(item.EncodedBytes, info, instanceNumber).Save(path));
             saved++;
         }
 
         StatusText = $"{saved}장 DICOM 저장 완료 → {folder}";
         if (Exam.AutoClear) Exam.Clear();
         return saved;
+    }
+
+    /// <summary>선택(없으면 전체) 이미지를 로컬 DB 에 검사 한 건으로 저장 (VPWinGate SaveDB).</summary>
+    public async Task<int> SaveToDbAsync(LocalDatabase db)
+    {
+        var targets = SelectedItems() is { Count: > 0 } sel ? sel : Images.ToList();
+        var info = BuildExamInfo();
+        var images = targets.Select(t => t.EncodedBytes).ToList();
+
+        var record = await Task.Run(() => db.SaveStudy(info, images));
+
+        StatusText = $"로컬 DB 저장 완료 — {record.ImageCount}장 (FindDB 로 검색)";
+        if (Exam.AutoClear) Exam.Clear();
+        return record.ImageCount;
     }
 }

@@ -94,13 +94,13 @@
                             <Button Classes="tile" IsEnabled="False" ToolTip.Tip="DICOM Worklist 조회 — 4차 예정">
                                 <StackPanel><i:Icon Value="mdi-clipboard-text"/><TextBlock Text="Worklist"/></StackPanel>
                             </Button>
-                            <Button Classes="tile" IsEnabled="False" ToolTip.Tip="Local DB에 검사 저장 — M4 예정">
+                            <Button Classes="tile" Click="OnSaveDbClick" ToolTip.Tip="화면의 영상·정보를 로컬 DB에 검사로 저장">
                                 <StackPanel><i:Icon Value="mdi-database-plus"/><TextBlock Text="SaveDB"/></StackPanel>
                             </Button>
-                            <Button Classes="tile" IsEnabled="False" ToolTip.Tip="저장된 검사에 영상 추가 — M4 예정">
+                            <Button Classes="tile" IsEnabled="False" ToolTip.Tip="저장된 검사에 영상 추가 — 예정">
                                 <StackPanel><i:Icon Value="mdi-account-plus"/><TextBlock Text="InsExam"/></StackPanel>
                             </Button>
-                            <Button Classes="tile" IsEnabled="False" ToolTip.Tip="Local DB 검색·열기 — M4 예정">
+                            <Button Classes="tile" Click="OnFindDbClick" ToolTip.Tip="로컬 DB 검색·열기·삭제">
                                 <StackPanel><i:Icon Value="mdi-database-search"/><TextBlock Text="FindDB"/></StackPanel>
                             </Button>
                             <Button Classes="tile" IsEnabled="False" ToolTip.Tip="PACS로 DICOM 전송 — 3차 예정">
