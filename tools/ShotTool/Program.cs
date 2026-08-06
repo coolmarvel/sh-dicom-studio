@@ -66,7 +66,7 @@ if (which == "savetest")
     vm.Exam.Modality = "OT";
 
     var outDir = Directory.CreateTempSubdirectory("shdicom-save-out").FullName;
-    if (!vm.ValidateForSave()) { Console.WriteLine("FAIL: validate"); return; }
+    if (vm.ValidateForSave() is { } problem) { Console.WriteLine($"FAIL: {problem}"); return; }
     // 헤드리스에는 도는 디스패처 루프가 없어 await 가 재개되지 않는다 — 완료까지 수동 펌프.
     var saveTask = vm.SaveDicomAsync(outDir);
     while (!saveTask.IsCompleted) { Dispatcher.UIThread.RunJobs(); Thread.Sleep(10); }

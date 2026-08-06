@@ -241,23 +241,18 @@ public partial class MainViewModel : ViewModelBase
 
     // ── DICOM 저장 (M3) — 선택된 이미지, 없으면 전체 ────────────────
 
-    /// <summary>저장 가능 여부 사전 검증. 문제가 있으면 StatusText 로 알리고 false.</summary>
-    public bool ValidateForSave()
+    /// <summary>저장 가능 여부 사전 검증 — 문제가 있으면 사유를 반환 (없으면 null).</summary>
+    public string? ValidateForSave()
     {
         if (Images.Count == 0)
-        {
-            StatusText = "저장할 이미지가 없습니다 — [Open]으로 먼저 불러오세요";
-            return false;
-        }
+            return "저장할 이미지가 없습니다 — [Open]으로 먼저 불러오세요.";
         if (!Exam.IsAnonymous && string.IsNullOrWhiteSpace(Exam.PatientId))
-        {
-            StatusText = "Patient ID 를 입력하거나 [익명 환자]를 체크하세요";
-            return false;
-        }
-        return true;
+            return "Patient ID 를 입력하거나 [익명 환자]를 체크하세요.";
+        return null;
     }
 
-    public async Task SaveDicomAsync(string folder)
+    /// <summary>선택(없으면 전체) 이미지를 DICOM 으로 저장하고 저장 장수를 반환.</summary>
+    public async Task<int> SaveDicomAsync(string folder)
     {
         var targets = SelectedItems() is { Count: > 0 } sel ? sel : Images.ToList();
 
@@ -290,5 +285,6 @@ public partial class MainViewModel : ViewModelBase
 
         StatusText = $"{saved}장 DICOM 저장 완료 → {folder}";
         if (Exam.AutoClear) Exam.Clear();
+        return saved;
     }
 }

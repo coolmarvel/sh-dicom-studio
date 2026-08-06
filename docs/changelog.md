@@ -12,6 +12,11 @@ domain: development
 <!-- ## vX.Y.Z — YYYY-MM-DD
 - 변경 요약 -->
 
+## v0.1.4 — 2026-08-06
+
+- 저장 결과를 대화상자로 명확히 안내 (검증 실패 사유·저장 완료·오류 상세)
+- 크래시 로그(%AppData%/sh-dicom-studio/crash.log)·자가진단 CLI(--selftest-save) 추가
+
 ## v0.1.3 — 2026-08-06
 
 - **DICOM 변환·저장 (M3)** — 환자·검사 정보를 헤더에 담아 Secondary Capture DICOM 생성.

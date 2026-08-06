@@ -60,20 +60,43 @@ public partial class MainWindow : Window
     private void OnExitClick(object? sender, RoutedEventArgs e) => Close();
 
     // DICOM 저장 — 검증 통과 시 폴더를 고르게 하고 VM 에 위임.
+    // 결과(성공/검증 실패/오류)는 전부 대화상자로 알린다 — 상태바 한 줄은 놓치기 쉽다.
     private async void OnSaveClick(object? sender, RoutedEventArgs e)
     {
-        if (ViewModel is not { } vm || !vm.ValidateForSave()) return;
-
-        var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        try
         {
-            Title = "DICOM 저장 폴더 선택",
-            AllowMultiple = false,
-        });
+            if (ViewModel is not { } vm) return;
 
-        if (folders.Count == 0) return;
-        if (folders[0].TryGetLocalPath() is not { } folder) return;
+            if (vm.ValidateForSave() is { } problem)
+            {
+                await Dialogs.ShowAsync(this, "DICOM 저장", problem);
+                return;
+            }
 
-        await vm.SaveDicomAsync(folder);
+            var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            {
+                Title = "DICOM 저장 폴더 선택",
+                AllowMultiple = false,
+            });
+
+            if (folders.Count == 0) return;
+            if (folders[0].TryGetLocalPath() is not { } folder)
+            {
+                await Dialogs.ShowAsync(this, "DICOM 저장 실패",
+                    "선택한 위치의 실제 폴더 경로를 얻지 못했습니다. 다른 폴더를 선택해 주세요.");
+                return;
+            }
+
+            var saved = await ViewModel!.SaveDicomAsync(folder);
+            await Dialogs.ShowAsync(this, "DICOM 저장 완료",
+                $"{saved}장이 저장되었습니다.\n\n{folder}");
+        }
+        catch (System.Exception ex)
+        {
+            Program.LogCrash(ex);
+            await Dialogs.ShowAsync(this, "DICOM 저장 실패",
+                $"저장 중 오류가 발생했습니다. 아래 내용을 개발자에게 전달해 주세요.\n\n{ex}");
+        }
     }
 
     private void OnCellPressed(object? sender, PointerPressedEventArgs e)
