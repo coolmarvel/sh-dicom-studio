@@ -1,0 +1,15 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ShDicomStudio.App.App"
+             xmlns:local="using:ShDicomStudio.App"
+             RequestedThemeVariant="Default">
+    <!-- RequestedThemeVariant "Default" 는 OS 테마를 따른다. "Dark"/"Light" 로 고정 가능. -->
+
+    <Application.DataTemplates>
+        <local:ViewLocator/>
+    </Application.DataTemplates>
+
+    <Application.Styles>
+        <FluentTheme />
+    </Application.Styles>
+</Application>
