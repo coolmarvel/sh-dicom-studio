@@ -59,6 +59,26 @@ public class InsExamAndPdfTests : IDisposable
     }
 
     [Fact]
+    public void UpdateStudy_는_이미지_구성과_정보를_통째로_바꾸고_StudyUID_는_유지한다()
+    {
+        var rec = _db.SaveStudy(Info, [Png(), Png(100)]);
+        var beforePaths = _db.GetImagePaths(rec.Id);
+        var beforeUid = DicomFile.Open(beforePaths[0]).Dataset.GetString(DicomTag.StudyInstanceUID);
+
+        // 2장 → 1장으로 줄이고 이름 수정 (뷰어에서 Delete 후 업데이트하는 시나리오)
+        _db.UpdateStudy(rec.Id, Info with { PatientName = "김수정" }, [Png(50)]);
+
+        var after = Assert.Single(_db.Search(patientId: "20260001"));
+        Assert.Equal(1, after.ImageCount);
+        Assert.Equal("김수정", after.Info.PatientName);
+
+        var paths = _db.GetImagePaths(rec.Id);
+        var path = Assert.Single(paths);
+        Assert.Equal(beforeUid, DicomFile.Open(path).Dataset.GetString(DicomTag.StudyInstanceUID));
+        Assert.All(beforePaths.Skip(1), p => Assert.False(File.Exists(p))); // 옛 파일 정리됨
+    }
+
+    [Fact]
     public void Pdf_는_페이지마다_이미지_한_장으로_열린다()
     {
         var path = Path.Combine(_root, "doc.pdf");

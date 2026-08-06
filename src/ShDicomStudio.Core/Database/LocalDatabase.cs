@@ -218,6 +218,77 @@ public sealed class LocalDatabase : IDisposable
         return encodedImages.Count;
     }
 
+    /// <summary>
+    /// 검사를 현재 화면 상태로 덮어쓴다 — 이미지 구성(삭제·순서·편집)과 환자정보가 통째로
+    /// 반영된다. Study UID 는 유지(같은 검사), Series 는 새로 발급된다.
+    /// </summary>
+    public void UpdateStudy(long studyId, ExamInfo info, IReadOnlyList<byte[]> encodedImages)
+    {
+        var find = _conn.CreateCommand();
+        find.CommandText = "SELECT StudyUid FROM Study WHERE Id = $sid";
+        find.Parameters.AddWithValue("$sid", studyId);
+        if (find.ExecuteScalar() is not string studyUid)
+            throw new InvalidOperationException($"검사가 없습니다 (Id={studyId})");
+
+        // 파일 재생성 (같은 Study UID, 새 Series)
+        var dir = Path.Combine(_root, "dicom", studyUid);
+        if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        Directory.CreateDirectory(dir);
+
+        var study = new DicomStudy(studyUid);
+        var paths = new List<string>();
+        for (var i = 0; i < encodedImages.Count; i++)
+        {
+            var path = Path.Combine(dir, $"{i + 1:00000}.dcm");
+            study.Create(encodedImages[i], info, i + 1).Save(path);
+            paths.Add(path);
+        }
+
+        using var tx = _conn.BeginTransaction();
+        var clear = _conn.CreateCommand();
+        clear.Transaction = tx;
+        clear.CommandText = "DELETE FROM Image WHERE StudyId = $sid";
+        clear.Parameters.AddWithValue("$sid", studyId);
+        clear.ExecuteNonQuery();
+
+        var upd = _conn.CreateCommand();
+        upd.Transaction = tx;
+        upd.CommandText = """
+            UPDATE Study SET PatientId=$pid, PatientName=$name, Sex=$sex, Age=$age, Modality=$mod,
+                             StudyDate=$sdate, BirthDate=$bdate, StudyDescription=$desc,
+                             AccessionNumber=$acc, ReferringPhysician=$ref, Comment=$cmt,
+                             Anonymous=$anon, ImageCount=$cnt
+            WHERE Id=$sid
+            """;
+        upd.Parameters.AddWithValue("$pid", info.Anonymous ? "ANONYMOUS" : info.PatientId);
+        upd.Parameters.AddWithValue("$name", info.Anonymous ? "ANONYMOUS" : info.PatientName);
+        upd.Parameters.AddWithValue("$sex", info.Sex);
+        upd.Parameters.AddWithValue("$age", info.Age);
+        upd.Parameters.AddWithValue("$mod", info.Modality);
+        upd.Parameters.AddWithValue("$sdate", (object?)ToDateString(info.StudyDate) ?? DBNull.Value);
+        upd.Parameters.AddWithValue("$bdate", (object?)ToDateString(info.BirthDate) ?? DBNull.Value);
+        upd.Parameters.AddWithValue("$desc", info.StudyDescription);
+        upd.Parameters.AddWithValue("$acc", info.AccessionNumber);
+        upd.Parameters.AddWithValue("$ref", info.ReferringPhysician);
+        upd.Parameters.AddWithValue("$cmt", info.Comment);
+        upd.Parameters.AddWithValue("$anon", info.Anonymous ? 1 : 0);
+        upd.Parameters.AddWithValue("$cnt", encodedImages.Count);
+        upd.Parameters.AddWithValue("$sid", studyId);
+        upd.ExecuteNonQuery();
+
+        for (var i = 0; i < paths.Count; i++)
+        {
+            var img = _conn.CreateCommand();
+            img.Transaction = tx;
+            img.CommandText = "INSERT INTO Image(StudyId, InstanceNumber, FilePath) VALUES($sid, $num, $path);";
+            img.Parameters.AddWithValue("$sid", studyId);
+            img.Parameters.AddWithValue("$num", i + 1);
+            img.Parameters.AddWithValue("$path", paths[i]);
+            img.ExecuteNonQuery();
+        }
+        tx.Commit();
+    }
+
     /// <summary>검사의 DICOM 파일 경로들 (InstanceNumber 순).</summary>
     public List<string> GetImagePaths(long studyId)
     {

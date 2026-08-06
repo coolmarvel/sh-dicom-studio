@@ -124,6 +124,25 @@ public partial class MainWindow : Window
                 return;
             }
 
+            // FindDB 로 연 검사가 있으면: 그 검사를 현재 화면대로 업데이트할지, 새 검사로 저장할지 선택.
+            if (vm.OpenedStudyId is not null)
+            {
+                var choice = await Dialogs.ChooseAsync(this, "로컬 DB 저장",
+                    "FindDB 로 연 검사가 있습니다. 어떻게 저장할까요?",
+                    ("update", "기존 검사 업데이트 — 현재 화면 그대로 (삭제·편집 반영)"),
+                    ("new", "새 검사로 저장"),
+                    ("cancel", "취소"));
+
+                if (choice is "update")
+                {
+                    var updated = await vm.UpdateOpenedStudyAsync(Db);
+                    await Dialogs.ShowAsync(this, "검사 업데이트 완료",
+                        $"열려 있던 검사가 현재 화면 그대로 {updated}장으로 업데이트되었습니다.");
+                    return;
+                }
+                if (choice is not "new") return;
+            }
+
             var count = await vm.SaveToDbAsync(Db);
             await Dialogs.ShowAsync(this, "로컬 DB 저장 완료",
                 $"{count}장이 검사 한 건으로 저장되었습니다.\n[FindDB]에서 검색해 다시 열 수 있습니다.");

@@ -277,6 +277,21 @@ public partial class MainViewModel : ViewModelBase
         StatusText = IdleStatus;
     }
 
+    /// <summary>FindDB 로 연 검사를 현재 화면 상태(이미지 구성·편집·정보)로 덮어쓴다.</summary>
+    public async Task<int> UpdateOpenedStudyAsync(LocalDatabase db)
+    {
+        var studyId = OpenedStudyId!.Value;
+        var info = BuildExamInfo();
+        var images = Images.Select(t => t.EncodedBytes).ToList();
+
+        await Task.Run(() => db.UpdateStudy(studyId, info, images));
+
+        foreach (var item in Images)
+            item.IsFromDb = true;
+        StatusText = $"검사 업데이트 완료 — 현재 화면 그대로 {images.Count}장";
+        return images.Count;
+    }
+
     // ── InsExam: FindDB 로 연 검사에 새 이미지 추가 저장 ────────────
 
     public string? ValidateForInsExam()

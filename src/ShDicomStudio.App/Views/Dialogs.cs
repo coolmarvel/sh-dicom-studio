@@ -83,4 +83,49 @@ public static class Dialogs
         cancel.Click += (_, _) => win.Close(false);
         return await win.ShowDialog<bool?>(owner) == true;
     }
+
+    /// <summary>여러 선택지 중 하나 — 선택한 key 를 반환, 창을 닫으면 null.</summary>
+    public static Task<string?> ChooseAsync(Window owner, string title, string message,
+        params (string Key, string Label)[] choices)
+    {
+        var buttons = new StackPanel
+        {
+            Orientation = Orientation.Vertical,
+            Spacing = 8,
+        };
+
+        var win = new Window
+        {
+            Title = title,
+            SizeToContent = SizeToContent.Height,
+            Width = 460,
+            CanResize = false,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            Content = new StackPanel
+            {
+                Margin = new Avalonia.Thickness(20),
+                Spacing = 16,
+                Children =
+                {
+                    new SelectableTextBlock { Text = message, TextWrapping = Avalonia.Media.TextWrapping.Wrap },
+                    buttons,
+                },
+            },
+        };
+
+        foreach (var (key, label) in choices)
+        {
+            var btn = new Button
+            {
+                Content = label,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                HorizontalContentAlignment = HorizontalAlignment.Center,
+                Padding = new Avalonia.Thickness(0, 8),
+            };
+            btn.Click += (_, _) => win.Close(key);
+            buttons.Children.Add(btn);
+        }
+
+        return win.ShowDialog<string?>(owner);
+    }
 }
