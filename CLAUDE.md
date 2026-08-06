@@ -102,6 +102,9 @@ dotnet run --project tools/ShotTool -- out.png loaded # 헤드리스 UI 스크�
 - 함정: `ItemsPanelTemplate` 안은 컴파일 바인딩 타입 추론이 안 된다 — `vm:` 타입 캐스트 바인딩은
   빌드는 되지만 **런타임 크래시**. `ReflectionBinding` 을 쓸 것 (2026-08-06 M2 에서 실사고).
   XAML 을 고치면 빌드 성공만 믿지 말고 `timeout 8 dotnet run` 실행 스모크까지 돌린다.
+- 함정: RenderTransform(Matrix)으로 이미지를 다룰 때 호스트는 **Canvas** 여야 한다 — Grid 등은
+  자식 arrange 를 셀 크기로 클램프해 Stretch=None 이미지가 center-crop 되고 변환 좌표계가
+  어긋난다 (2026-08-06 v0.1.2 실사고). 렌더링 결과는 ShotTool 캡처로 눈 확인.
 
 ## 하네스 (Harness Engineering)
 

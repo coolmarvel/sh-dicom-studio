@@ -65,18 +65,6 @@ public partial class MainWindow : Window
             ViewModel?.OnCellClicked(item);
     }
 
-    // 썸네일 클릭 → 해당 이미지가 있는 페이지로 이동 + 선택 표시
-    private void OnThumbnailSelectionChanged(object? sender, SelectionChangedEventArgs e)
-    {
-        if (ViewModel is not { } vm) return;
-        if (e.AddedItems.Count == 0 || e.AddedItems[0] is not ImageItemViewModel item) return;
-
-        var index = vm.Images.IndexOf(item);
-        if (index < 0) return;
-        vm.CurrentPage = index / vm.SelectedLayout.PageSize + 1;
-        vm.SelectedImage = item;
-    }
-
     // Fit/Realsize/Reset — 선택된 셀이 있으면 그 셀만, 없으면 화면의 모든 셀에 적용 (뷰 전용 동작이라 코드비하인드).
     private void ApplyToViewers(System.Action<ImageViewer> action)
     {

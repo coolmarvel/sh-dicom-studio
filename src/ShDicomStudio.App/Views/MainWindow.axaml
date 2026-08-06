@@ -256,27 +256,6 @@
             </DockPanel>
         </Border>
 
-        <!-- ══ 우측 썸네일 ═════════════════════════════════════════ -->
-        <Border DockPanel.Dock="Right" Width="148" Background="#F8F9FB"
-                BorderBrush="{StaticResource RuleBrush}" BorderThickness="1,0,0,0">
-            <ListBox ItemsSource="{Binding Images}"
-                     SelectionChanged="OnThumbnailSelectionChanged"
-                     Background="Transparent">
-                <ListBox.ItemTemplate>
-                    <DataTemplate x:DataType="vm:ImageItemViewModel">
-                        <StackPanel Spacing="2" Margin="0,4">
-                            <Border Background="#0E1526" CornerRadius="4" Padding="2">
-                                <Image Source="{Binding Bitmap}" Height="84" Stretch="Uniform"/>
-                            </Border>
-                            <TextBlock Text="{Binding FileName}" FontSize="10"
-                                       Foreground="{StaticResource MutedTextBrush}"
-                                       TextTrimming="CharacterEllipsis" HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-        </Border>
-
         <!-- ══ 하단 상태 바 ════════════════════════════════════════ -->
         <Border DockPanel.Dock="Bottom" Background="{StaticResource SidebarBrush}"
                 BorderBrush="{StaticResource RuleBrush}" BorderThickness="0,1,0,0" Padding="12,5">

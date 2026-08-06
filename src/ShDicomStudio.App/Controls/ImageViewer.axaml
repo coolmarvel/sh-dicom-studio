@@ -3,7 +3,12 @@
              x:Class="ShDicomStudio.App.Controls.ImageViewer"
              ClipToBounds="True"
              Background="Transparent">
-    <Grid Name="PART_Host">
-        <Image Name="PART_Image" Stretch="None" RenderTransformOrigin="0,0"/>
-    </Grid>
+    <!-- Canvas 필수: Grid/Panel 은 자식 arrange 를 셀 크기로 클램프해서 큰 이미지가
+         center-crop 되고, 그 위에 Matrix 변환이 겹치면 배율·위치가 어긋난다.
+         Canvas 는 자식을 원본 크기(좌상단 원점)로 배치하므로 Matrix 좌표계와 일치한다.
+         (2026-08-06 실사고 — 이미지가 셀 규격에 안 맞게 떠 보였던 원인.) -->
+    <Canvas Name="PART_Host">
+        <Image Name="PART_Image" Stretch="None" RenderTransformOrigin="0,0"
+               Canvas.Left="0" Canvas.Top="0"/>
+    </Canvas>
 </UserControl>
