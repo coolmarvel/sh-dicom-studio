@@ -119,6 +119,9 @@
                             <Button Classes="tile" Click="OnExitClick" ToolTip.Tip="프로그램 종료">
                                 <StackPanel><i:Icon Value="mdi-exit-to-app"/><TextBlock Text="Exit"/></StackPanel>
                             </Button>
+                            <Button Classes="tile" Click="OnUsersClick" ToolTip.Tip="사용자 계정 관리 — admin 로그인 필요">
+                                <StackPanel><i:Icon Value="mdi-account-cog"/><TextBlock Text="Users"/></StackPanel>
+                            </Button>
                         </UniformGrid>
 
                         <!-- ── EXAM INFORMATION ───────────────────── -->

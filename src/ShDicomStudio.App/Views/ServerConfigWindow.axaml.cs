@@ -30,7 +30,8 @@ public partial class ServerConfigWindow : Window
     private void RefreshList(string? select = null)
     {
         ServerList.ItemsSource = null;
-        ServerList.ItemsSource = _working.Select(s => $"{s.Name}  —  {s.Url}").ToList();
+        // 목록에는 이름만 — 주소는 선택하면 좌측 입력란에 보인다 (2026-08-06 피드백)
+        ServerList.ItemsSource = _working.Select(s => s.Name).ToList();
         if (select is not null)
         {
             var index = _working.FindIndex(s => s.Name == select);

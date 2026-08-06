@@ -67,6 +67,26 @@ public partial class FindDbWindow : Window
 
     private void OnCloseClick(object? sender, RoutedEventArgs e) => Close(null);
 
+    // 검사 보내기 (PPW 검사 보내기 모달) — 이 검사의 DICOM 파일들을 C-STORE 로 전송.
+    private async void OnSendClick(object? sender, RoutedEventArgs e)
+    {
+        if (Vm?.SelectedRow is not { } row || _db is not { } db) return;
+        if (row.IsServer)
+        {
+            await Dialogs.ShowAsync(this, "검사 보내기", "서버 검색 결과는 파일이 로컬에 없어 전송할 수 없습니다.");
+            return;
+        }
+
+        var paths = db.GetImagePaths(row.Record.Id);
+        if (paths.Count == 0)
+        {
+            await Dialogs.ShowAsync(this, "검사 보내기", "이 검사에 전송할 DICOM 파일이 없습니다.");
+            return;
+        }
+
+        await new SendWindow(paths, $"{row.PatientName} ({row.PatientId})").ShowDialog<bool?>(this);
+    }
+
     // 검사 전체를 JPG 로 내보내기 (정보 오버레이) — 저장 당시 환자정보를 그대로 얹는다.
     private async void OnExportJpegClick(object? sender, RoutedEventArgs e)
     {

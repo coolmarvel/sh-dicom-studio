@@ -36,5 +36,19 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  # 3차 — PACS 전송 테스트 대상 (오픈소스 PACS). C-ECHO/C-STORE 수신, 웹 뷰어 8042.
+  orthanc:
+    image: orthancteam/orthanc:24.12.0
+    container_name: shdicom-orthanc
+    environment:
+      ORTHANC__DICOM_AET: "ORTHANC"
+      ORTHANC__AUTHENTICATION_ENABLED: "false"   # 로컬 테스트용 — 외부 노출 시 켤 것
+    ports:
+      - "4242:4242"   # DICOM (C-STORE/C-ECHO)
+      - "8042:8042"   # 웹 UI — http://localhost:8042
+    volumes:
+      - orthanc-data:/var/lib/orthanc/db
+
 volumes:
   oracle-data:
+  orthanc-data:

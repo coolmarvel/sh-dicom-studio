@@ -100,6 +100,60 @@ public sealed class ServerClient
         }
     }
 
+    // ── 계정 관리 (admin 전용 API — S3) ─────────────────────────────
+
+    public sealed record UserEntry(string Username, string DisplayName);
+
+    private static HttpRequestMessage Authorized(HttpMethod method, string path, object? body = null)
+    {
+        var request = new HttpRequestMessage(method, $"{AppSession.ServerUrl.TrimEnd('/')}{path}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", AppSession.Token);
+        if (body is not null)
+            request.Content = JsonContent.Create(body);
+        return request;
+    }
+
+    public static async Task<List<UserEntry>?> GetUsersAsync()
+    {
+        try
+        {
+            var response = await Http.SendAsync(Authorized(HttpMethod.Get, "/api/users"));
+            return response.IsSuccessStatusCode
+                ? await response.Content.ReadFromJsonAsync<List<UserEntry>>()
+                : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private sealed record ApiMessage(string Message);
+
+    private static async Task<(bool Ok, string Message)> SendSimpleAsync(HttpRequestMessage request)
+    {
+        try
+        {
+            var response = await Http.SendAsync(request);
+            if (response.IsSuccessStatusCode) return (true, "완료");
+            var body = await response.Content.ReadFromJsonAsync<ApiMessage>();
+            return (false, body?.Message ?? $"실패 (HTTP {(int)response.StatusCode})");
+        }
+        catch (Exception ex)
+        {
+            return (false, $"서버 통신 실패 — {ex.Message}");
+        }
+    }
+
+    public static Task<(bool Ok, string Message)> CreateUserAsync(string username, string password, string displayName) =>
+        SendSimpleAsync(Authorized(HttpMethod.Post, "/api/users", new { username, password, displayName }));
+
+    public static Task<(bool Ok, string Message)> ChangePasswordAsync(string username, string newPassword) =>
+        SendSimpleAsync(Authorized(HttpMethod.Put, $"/api/users/{Uri.EscapeDataString(username)}/password", new { newPassword }));
+
+    public static Task<(bool Ok, string Message)> DeleteUserAsync(string username) =>
+        SendSimpleAsync(Authorized(HttpMethod.Delete, $"/api/users/{Uri.EscapeDataString(username)}"));
+
     /// <summary>서버 검사 메타 검색 — 실패 시 null (호출부가 안내).</summary>
     public static async Task<List<ServerStudy>?> SearchStudiesAsync(
         string? patientId, string? patientName, string? modality, DateTime? from, DateTime? to)

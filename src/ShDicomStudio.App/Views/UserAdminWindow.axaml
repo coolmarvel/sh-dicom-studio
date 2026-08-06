@@ -1,0 +1,52 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:i="https://github.com/projektanker/icons.avalonia"
+        x:Class="ShDicomStudio.App.Views.UserAdminWindow"
+        Title="사용자 계정 관리 (admin)"
+        Icon="avares://ShDicomStudio.App/Assets/appicon.ico"
+        Width="540" SizeToContent="Height" CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource ChromeBrush}">
+
+    <Grid Margin="16" ColumnDefinitions="*,12,200" RowDefinitions="Auto,Auto">
+
+        <!-- 좌: 입력 -->
+        <StackPanel Grid.Row="0" Grid.Column="0" Spacing="10">
+            <TextBlock Classes="section" Text="USER INFORMATION"/>
+            <StackPanel>
+                <TextBlock Classes="field" Text="아이디"/>
+                <TextBox Name="UserBox"/>
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Classes="field" Text="표시 이름"/>
+                <TextBox Name="DisplayBox" Watermark="예: 홍길동 (검사실)"/>
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Classes="field" Text="비밀번호 (추가·변경 시)"/>
+                <TextBox Name="PasswordBox" PasswordChar="●"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <Button Content="추가" Click="OnAddClick" Padding="14,6"/>
+                <Button Content="비밀번호 변경" Click="OnChangePasswordClick" Padding="14,6"/>
+                <Button Content="삭제" Click="OnDeleteClick" Padding="14,6"/>
+            </StackPanel>
+            <TextBlock Name="StatusBlock" FontSize="11" Foreground="#FFE53935"
+                       TextWrapping="Wrap" IsVisible="False"/>
+        </StackPanel>
+
+        <!-- 우: 사용자 목록 -->
+        <StackPanel Grid.Row="0" Grid.Column="2" Spacing="6">
+            <TextBlock Classes="section" Text="USER LIST"/>
+            <Border Background="{StaticResource SidebarBrush}" BorderBrush="{StaticResource RuleBrush}"
+                    BorderThickness="1" CornerRadius="6" Height="230">
+                <ListBox Name="UserList" Background="Transparent"
+                         SelectionChanged="OnSelectionChanged"/>
+            </Border>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal"
+                    HorizontalAlignment="Right" Margin="0,14,0,0">
+            <Button Content="닫기" Click="OnCloseClick" Padding="18,7"/>
+        </StackPanel>
+    </Grid>
+</Window>

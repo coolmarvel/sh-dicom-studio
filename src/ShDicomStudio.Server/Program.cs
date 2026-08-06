@@ -73,7 +73,50 @@ app.MapGet("/api/studies", async (string? patientId, string? patientName, string
     Results.Ok(await studies.SearchAsync(patientId, patientName, modality, from, to)))
     .RequireAuthorization();
 
+// ── 계정 관리 — admin 전용 (본인 비밀번호 변경만 예외) ──────────────
+
+app.MapGet("/api/users", async (ClaimsPrincipal principal) =>
+    IsAdmin(principal) ? Results.Ok(await users.ListAsync()) : Results.Forbid())
+    .RequireAuthorization();
+
+app.MapPost("/api/users", async (CreateUserRequest request, ClaimsPrincipal principal) =>
+{
+    if (!IsAdmin(principal)) return Results.Forbid();
+    if (request.Username.Trim().Length == 0 || request.Password.Length < 4)
+        return Results.BadRequest(new { message = "아이디를 입력하고 비밀번호는 4자 이상이어야 합니다." });
+
+    var created = await users.CreateAsync(request.Username.Trim(), request.Password,
+        string.IsNullOrWhiteSpace(request.DisplayName) ? request.Username.Trim() : request.DisplayName.Trim());
+    return created ? Results.Ok(new { ok = true })
+                   : Results.Conflict(new { message = "이미 존재하는 아이디입니다." });
+}).RequireAuthorization();
+
+app.MapPut("/api/users/{username}/password", async (string username, ChangePasswordRequest request,
+    ClaimsPrincipal principal) =>
+{
+    // admin 은 누구든, 일반 사용자는 본인 것만.
+    if (!IsAdmin(principal) && Subject(principal) != username) return Results.Forbid();
+    if (request.NewPassword.Length < 4)
+        return Results.BadRequest(new { message = "비밀번호는 4자 이상이어야 합니다." });
+    await users.ChangePasswordAsync(username, request.NewPassword);
+    return Results.Ok(new { ok = true });
+}).RequireAuthorization();
+
+app.MapDelete("/api/users/{username}", async (string username, ClaimsPrincipal principal) =>
+{
+    if (!IsAdmin(principal)) return Results.Forbid();
+    if (username == "admin") return Results.BadRequest(new { message = "admin 계정은 삭제할 수 없습니다." });
+    await users.DeleteAsync(username);
+    return Results.Ok(new { ok = true });
+}).RequireAuthorization();
+
 app.Run();
+
+static string Subject(ClaimsPrincipal principal) =>
+    principal.FindFirstValue(ClaimTypes.NameIdentifier)
+    ?? principal.FindFirstValue(JwtRegisteredClaimNames.Sub) ?? "";
+
+static bool IsAdmin(ClaimsPrincipal principal) => Subject(principal) == "admin";
 
 static string CreateJwt(UserRecord user, SymmetricSecurityKey key)
 {
@@ -93,3 +136,7 @@ static string CreateJwt(UserRecord user, SymmetricSecurityKey key)
 public sealed record LoginRequest(string Username, string Password);
 
 public sealed record LoginResponse(string Token, string Username, string DisplayName);
+
+public sealed record CreateUserRequest(string Username, string Password, string DisplayName);
+
+public sealed record ChangePasswordRequest(string NewPassword);

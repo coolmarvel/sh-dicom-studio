@@ -11,6 +11,22 @@ domain: development
 
 블록 형식: `## YYYY-MM-DD — 제목` 아래에 **요청/피드백 → 수정 → 검증 → 다음** 순서로 간결하게.
 
+## 2026-08-06 — 3차 PACS 전송 + 계정 관리 v0.1.12
+
+- **피드백/요청**: 서버 목록에 이름만 표시 → 반영. 이어서 3차(전송)와 계정 관리 동시 진행.
+- **수정**:
+  - compose 에 **Orthanc**(orthancteam/orthanc, AET=ORTHANC, 4242/8042) 추가.
+  - Core `DicomSender` — C-ECHO/C-STORE (fo-dicom DicomClient, Calling AET=SHDICOM).
+  - `SendWindow`(PPW 검사 보내기): 목적지 목록(pacs.json — 기본 Orthanc) 이름만 표시,
+    추가/수정/삭제 즉시 저장, [연결 테스트]·[Send]. FindDB 우클릭 전송 메뉴 활성화.
+  - 계정 관리: 서버 /api/users CRUD(admin 전용, 본인 비번 변경 예외, admin 삭제 금지) +
+    `UserAdminWindow` + MAIN TOOLS [Users] 타일.
+- **검증**: build/test 34/34/format ✅ · 계정 API 라이브(추가/403/변경/삭제/admin보호) ✅ ·
+  **PACS E2E: C-ECHO 성공 → C-STORE 2/2 → Orthanc REST 수신 확인(PACS01)** ✅ ·
+  SendWindow 캡처 ✅ · 스모크 ✅ → 인스톨러 0.1.12 바탕화면 교체.
+- **다음**: 사용자 실기 (전송 → http://localhost:8042 에서 확인). 남은 로드맵: 4차 Worklist ·
+  M4 잔여 옵션 화면 · M5 mac/linux 패키징.
+
 ## 2026-08-06 — 로그인 창 개편 (PPW DB Config) v0.1.11
 
 - **피드백**: PPW 로그인 스크린샷 4장 — 이미지 패널 제거, 서버(DB Config) 전환 가능하게,

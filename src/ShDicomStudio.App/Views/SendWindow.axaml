@@ -1,0 +1,69 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:i="https://github.com/projektanker/icons.avalonia"
+        x:Class="ShDicomStudio.App.Views.SendWindow"
+        Title="검사 보내기 (DICOM Storage SCP)"
+        Icon="avares://ShDicomStudio.App/Assets/appicon.ico"
+        Width="560" SizeToContent="Height" CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource ChromeBrush}">
+
+    <Grid Margin="16" ColumnDefinitions="*,12,200" RowDefinitions="Auto,Auto,Auto">
+
+        <!-- 좌: 목적지 정보 -->
+        <StackPanel Grid.Row="0" Grid.Column="0" Spacing="10">
+            <TextBlock Name="StudyBlock" FontSize="12" Foreground="{StaticResource BodyTextBrush}"
+                       TextWrapping="Wrap" FontWeight="SemiBold"/>
+            <TextBlock Classes="section" Text="REMOTE HOST"/>
+            <StackPanel>
+                <TextBlock Classes="field" Text="이름"/>
+                <TextBox Name="NameBox" Watermark="예: 병원 PACS"/>
+            </StackPanel>
+            <Grid ColumnDefinitions="*,8,*">
+                <StackPanel Grid.Column="0">
+                    <TextBlock Classes="field" Text="AE Title"/>
+                    <TextBox Name="AetBox" Watermark="예: ORTHANC"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Classes="field" Text="포트"/>
+                    <TextBox Name="PortBox" Watermark="예: 4242"/>
+                </StackPanel>
+            </Grid>
+            <StackPanel>
+                <TextBlock Classes="field" Text="호스트 (IP/도메인)"/>
+                <TextBox Name="HostBox" Watermark="예: localhost 또는 192.168.0.10"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <Button Content="추가" Click="OnAddClick" Padding="14,6"/>
+                <Button Content="수정" Click="OnModifyClick" Padding="14,6"/>
+                <Button Content="삭제" Click="OnDeleteClick" Padding="14,6"/>
+            </StackPanel>
+            <TextBlock FontSize="11" Foreground="{StaticResource MutedTextBrush}"
+                       Text="압축: Keep Original (원본 그대로 전송)"/>
+            <TextBlock Name="StatusBlock" FontSize="11" Foreground="#FFE53935"
+                       TextWrapping="Wrap" IsVisible="False"/>
+        </StackPanel>
+
+        <!-- 우: 목적지 목록 + 동작 버튼 (PPW 검사 보내기 배치) -->
+        <StackPanel Grid.Row="0" Grid.Column="2" Spacing="6">
+            <TextBlock Classes="section" Text="목적지 (REMOTE HOST)"/>
+            <Border Background="{StaticResource SidebarBrush}" BorderBrush="{StaticResource RuleBrush}"
+                    BorderThickness="1" CornerRadius="6" Height="180">
+                <ListBox Name="NodeList" Background="Transparent"
+                         SelectionChanged="OnSelectionChanged"/>
+            </Border>
+            <Button Name="EchoButton" Click="OnEchoClick" HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center" Padding="0,8" Content="연결 테스트 (C-ECHO)"/>
+            <Button Name="SendButton" Click="OnSendClick" HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center" Padding="0,10"
+                    Background="{StaticResource AccentBrush}" Foreground="White" CornerRadius="8">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <i:Icon Value="mdi-send" FontSize="15"/>
+                    <TextBlock Text="Send" FontWeight="SemiBold"/>
+                </StackPanel>
+            </Button>
+            <Button Click="OnCloseClick" HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center" Padding="0,8" Content="닫기"/>
+        </StackPanel>
+    </Grid>
+</Window>

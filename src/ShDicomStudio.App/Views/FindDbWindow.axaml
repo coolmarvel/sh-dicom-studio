@@ -94,7 +94,7 @@
                                 <MenuItem.Icon><i:Icon Value="mdi-image-move"/></MenuItem.Icon>
                             </MenuItem>
                             <Separator/>
-                            <MenuItem Header="DICOM Storage SCP로 전송… (3차 예정)" IsEnabled="False">
+                            <MenuItem Header="DICOM Storage SCP로 전송…" Click="OnSendClick">
                                 <MenuItem.Icon><i:Icon Value="mdi-send"/></MenuItem.Icon>
                             </MenuItem>
                             <Separator/>

@@ -151,10 +151,40 @@ if (which == "synctest")
     return;
 }
 
+// pacstest: 검사 생성 → C-ECHO → C-STORE 전송 (Orthanc 도커) — 3차 E2E
+if (which == "pacstest")
+{
+    T Pump2<T>(Task<T> task)
+    {
+        while (!task.IsCompleted) { Dispatcher.UIThread.RunJobs(); Thread.Sleep(10); }
+        return task.GetAwaiter().GetResult();
+    }
+
+    var node = new ShDicomStudio.Core.Dicom.PacsNode("Orthanc", "ORTHANC", "localhost", 4242);
+    Console.WriteLine($"C-ECHO: {(Pump2(ShDicomStudio.Core.Dicom.DicomSender.EchoAsync(node)) ? "성공" : "실패")}");
+
+    var dbRoot = Directory.CreateTempSubdirectory("shdicom-pacs").FullName;
+    using var db = new ShDicomStudio.Core.Database.LocalDatabase(dbRoot);
+    var demo = ImageLoader.Load(CreateDemoImages(dbRoot, 2)[0]);
+    var demo2 = ImageLoader.Load(CreateDemoImages(dbRoot, 2)[1]);
+    var record = db.SaveStudy(new ShDicomStudio.Core.Dicom.ExamInfo
+    {
+        PatientId = "PACS01",
+        PatientName = "전송테스트",
+        Modality = "OT",
+        StudyDate = new DateTime(2026, 8, 6),
+    }, [demo.EncodedBytes, demo2.EncodedBytes]);
+
+    var sent = Pump2(ShDicomStudio.Core.Dicom.DicomSender.SendAsync(node, db.GetImagePaths(record.Id)));
+    Console.WriteLine($"C-STORE: {sent}/2 전송");
+    return;
+}
+
 Window win = which switch
 {
     "login" => new LoginWindow(),
     "dbconfig" => new ServerConfigWindow(ShDicomStudio.App.Services.ServerConfigStore.Load()),
+    "send" => new SendWindow([], "홍길동 (20260001)"),
     _ => new MainWindow { DataContext = vm },
 };
 if (width is int ww) win.Width = ww;

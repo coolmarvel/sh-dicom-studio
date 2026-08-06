@@ -99,6 +99,61 @@ public sealed class UserStore(string connectionString)
             : null;
     }
 
+    public async Task<List<UserRecord>> ListAsync()
+    {
+        await using var conn = new OracleConnection(connectionString);
+        await conn.OpenAsync();
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT USERNAME, DISPLAY_NAME FROM USERS ORDER BY USERNAME";
+        var users = new List<UserRecord>();
+        await using var reader = await cmd.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+            users.Add(new UserRecord(reader.GetString(0), reader.GetString(1)));
+        return users;
+    }
+
+    /// <summary>사용자 추가 — 이미 있으면 false.</summary>
+    public async Task<bool> CreateAsync(string username, string password, string displayName)
+    {
+        await using var conn = new OracleConnection(connectionString);
+        await conn.OpenAsync();
+
+        var check = conn.CreateCommand();
+        check.CommandText = "SELECT COUNT(*) FROM USERS WHERE USERNAME = :u";
+        check.Parameters.Add(new OracleParameter("u", username));
+        if ((decimal)(await check.ExecuteScalarAsync())! > 0)
+            return false;
+
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = "INSERT INTO USERS (USERNAME, PASSWORD_HASH, DISPLAY_NAME) VALUES (:u, :h, :d)";
+        cmd.Parameters.Add(new OracleParameter("u", username));
+        cmd.Parameters.Add(new OracleParameter("h", BCrypt.Net.BCrypt.HashPassword(password)));
+        cmd.Parameters.Add(new OracleParameter("d", displayName));
+        await cmd.ExecuteNonQueryAsync();
+        return true;
+    }
+
+    public async Task ChangePasswordAsync(string username, string newPassword)
+    {
+        await using var conn = new OracleConnection(connectionString);
+        await conn.OpenAsync();
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = "UPDATE USERS SET PASSWORD_HASH = :h WHERE USERNAME = :u";
+        cmd.Parameters.Add(new OracleParameter("h", BCrypt.Net.BCrypt.HashPassword(newPassword)));
+        cmd.Parameters.Add(new OracleParameter("u", username));
+        await cmd.ExecuteNonQueryAsync();
+    }
+
+    public async Task DeleteAsync(string username)
+    {
+        await using var conn = new OracleConnection(connectionString);
+        await conn.OpenAsync();
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = "DELETE FROM USERS WHERE USERNAME = :u";
+        cmd.Parameters.Add(new OracleParameter("u", username));
+        await cmd.ExecuteNonQueryAsync();
+    }
+
     private static async Task<T> ScalarAsync<T>(OracleConnection conn, string sql)
     {
         var cmd = conn.CreateCommand();

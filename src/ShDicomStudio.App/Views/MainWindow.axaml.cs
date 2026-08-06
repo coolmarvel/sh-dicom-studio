@@ -71,6 +71,22 @@ public partial class MainWindow : Window
 
     private void OnExitClick(object? sender, RoutedEventArgs e) => Close();
 
+    // 사용자 계정 관리 — 서버 로그인 + admin 계정에서만.
+    private async void OnUsersClick(object? sender, RoutedEventArgs e)
+    {
+        if (!Services.AppSession.IsOnline)
+        {
+            await Dialogs.ShowAsync(this, "사용자 관리", "서버에 로그인해야 사용할 수 있습니다.");
+            return;
+        }
+        if (Services.AppSession.Username != "admin")
+        {
+            await Dialogs.ShowAsync(this, "사용자 관리", "admin 계정 전용 기능입니다.");
+            return;
+        }
+        await new UserAdminWindow().ShowDialog(this);
+    }
+
     // DICOM 저장 — 검증 통과 시 폴더를 고르게 하고 VM 에 위임.
     // 결과(성공/검증 실패/오류)는 전부 대화상자로 알린다 — 상태바 한 줄은 놓치기 쉽다.
     private async void OnSaveClick(object? sender, RoutedEventArgs e)
