@@ -3,11 +3,7 @@
 # 지시문이 아니라 시스템으로 스타일을 강제한다 — 사람이 매번 챙기지 않아도 포맷이 일정하게 유지된다.
 set -euo pipefail
 
-FILE_PATH=$(python3 -c "
-import json, os
-data = json.loads(os.environ.get('CLAUDE_TOOL_INPUT', '{}'))
-print(data.get('file_path', ''))
-" 2>/dev/null) || exit 0
+FILE_PATH=$(python3 "$(dirname "$0")/read-tool-input.py" file_path) || exit 0
 
 # .cs / .axaml 만 대상. 그 외(문서 등)는 조용히 통과.
 case "$FILE_PATH" in
