@@ -20,6 +20,8 @@ domain: development
   docker-compose·서버 Dockerfile 머리말, packaging 가이드·CLAUDE.md(인스톨러 전달 위치를 실제로 쓰는 `바탕화면\seonghyun` 으로).
 - **그대로 둔 것**: AppId, exe·어셈블리 이름, 관리자 권한 설치(`{autopf}`) 방식, 지난 기록. 버전 1.0.1 → **1.0.2**(csproj Version·AssemblyVersion·FileVersion·iss).
 - **검증**: `dotnet build ShDicomStudio.sln`(0 경고·0 오류) · `dotnet test`(Core 34 통과) · `dotnet format --verify-no-changes` 통과.
+- **전달·설치**: `바탕화면\seonghyun\SH-DICOM-Studio-Setup-1.0.2.exe`(35 MB, SHA `8ec3ccca…`). 이 PC: `sh DICOM Studio 1.0.1`(`D:\Program Files\sh DICOM Studio`) 제거·폴더 삭제
+  (`D:\Program Files` 도 비어서 삭제) → `D:\SH DICOM Studio` 에 설치(관리자 설치, 바탕화면 아이콘 없이), 바로가기 `seonghyun\SH DICOM Studio.lnk`. 데이터(`%AppData%`)는 그대로.
 
 ## 2026-10-29 - 하네스 훅 입력 결함 수정 (코드·버전 변경 없음)
 
