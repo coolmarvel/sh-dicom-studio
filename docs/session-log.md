@@ -18,6 +18,8 @@ domain: development
 - **수정**: `src/ShDicomStudio.App/ShDicomStudio.App.csproj` 에 `<AssemblyTitle>SH DICOM Studio</AssemblyTitle>`. 버전 1.0.2 → **1.0.3**(csproj Version·AssemblyVersion·FileVersion·iss).
 - **검증**: `dotnet build`(0 경고·0 오류) · `dotnet test`(Core 34 통과) · `dotnet format --verify-no-changes` 통과.
 
+- **전달·설치**: `바탕화면\seonghyun\SH-DICOM-Studio-Setup-1.0.3.exe`(35 MB, SHA `fdcd4816…`), 1.0.2 인스톨러 삭제. 이 PC: 1.0.2 제거 → `D:\SH DICOM Studio` 에 1.0.3 설치(관리자),
+  exe 파일 설명 `SH DICOM Studio` 확인. 게시를 커밋(`f316cc1`) 전에 해서 exe 의 정보 판 뒤 해시가 직전 커밋 `e83c745` 로 찍혔다(코드는 `f316cc1` 과 같음).
 ## 2026-11-27 — 제품 이름 SH DICOM Studio 로 통일 (v1.0.2)
 
 - **요청**: pdf-editor·remote-assist 를 뺀 내 앱 이름을 `SH …` 로 통일(SH Compositor·SH e-Consent·SH Messenger·SH Form Designer·SH Video Editor·SH IP Scanner).
