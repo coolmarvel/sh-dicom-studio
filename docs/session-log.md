@@ -11,6 +11,13 @@ domain: development
 
 블록 형식: `## YYYY-MM-DD — 제목` 아래에 **요청/피드백 → 수정 → 검증 → 다음** 순서로 간결하게.
 
+## 2026-11-27 (2) — exe 파일 설명 SH DICOM Studio (v1.0.3)
+
+- **요청**: 설치 앱 이름 규칙에 맞춰 작업 관리자 등에 보이는 이름도 맞추고 다시 설치(SH Compositor·SH Form Designer·SH e-Consent 와 함께).
+- **원인**: .NET 은 `AssemblyTitle` 이 없으면 exe 파일 설명이 어셈블리 이름 — 1.0.2 설치본이 `ShDicomStudio.App` 으로 보였다.
+- **수정**: `src/ShDicomStudio.App/ShDicomStudio.App.csproj` 에 `<AssemblyTitle>SH DICOM Studio</AssemblyTitle>`. 버전 1.0.2 → **1.0.3**(csproj Version·AssemblyVersion·FileVersion·iss).
+- **검증**: `dotnet build`(0 경고·0 오류) · `dotnet test`(Core 34 통과) · `dotnet format --verify-no-changes` 통과.
+
 ## 2026-11-27 — 제품 이름 SH DICOM Studio 로 통일 (v1.0.2)
 
 - **요청**: pdf-editor·remote-assist 를 뺀 내 앱 이름을 `SH …` 로 통일(SH Compositor·SH e-Consent·SH Messenger·SH Form Designer·SH Video Editor·SH IP Scanner).

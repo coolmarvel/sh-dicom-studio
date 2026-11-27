@@ -12,6 +12,10 @@ domain: development
 <!-- ## vX.Y.Z — YYYY-MM-DD
 - 변경 요약 -->
 
+## v1.0.3 — 2026-11-27
+
+- 실행 파일 설명(작업 관리자 등에 보이는 이름)을 **SH DICOM Studio** 로 바꿨다.
+
 ## v1.0.2 — 2026-11-27
 
 - 제품 이름을 **SH DICOM Studio** 로 바꿨다(창 제목·내보낸 이미지 표기·설치 마법사·시작 메뉴·바로가기). 인스톨러 파일은 `SH-DICOM-Studio-Setup-<판>.exe`.
