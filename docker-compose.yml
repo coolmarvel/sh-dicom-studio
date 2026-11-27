@@ -1,4 +1,4 @@
-# sh DICOM Studio — 2차 서버 구성 (ADR-0003)
+# SH DICOM Studio — 2차 서버 구성 (ADR-0003)
 # 사용법: docker compose up -d   →   API http://localhost:8080/health
 # 주의: 비밀번호들은 로컬 개발용 기본값 — 외부 노출 시 반드시 변경.
 

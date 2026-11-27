@@ -5,7 +5,7 @@ updated: 2026-08-06
 domain: packaging
 ---
 
-# 패키징 가이드 — sh DICOM Studio (윈/맥/리눅스 설치본)
+# 패키징 가이드 — SH DICOM Studio (윈/맥/리눅스 설치본)
 
 > 원본: sh-ip-scanner `docs/guides/packaging.md` (**C#/Avalonia/Inno 파이프라인 검증 완료** 2026-08-04)
 > 를 이 프로젝트 값으로 옮긴 것. Windows 절차는 검증본 그대로, macOS/Linux 는 M5 에서 검증 후 갱신한다.
@@ -24,7 +24,7 @@ domain: packaging
 
 - **릴리스 전 검증 통과가 먼저다**: `dotnet build -c Release` + `dotnet test` + `dotnet format --verify-no-changes`.
 - 산출물 폴더(`publish/`, `installer/Output/`, `release/`)는 `.gitignore` 대상 — **설치 파일을 git 에 커밋하지 않는다.**
-- 공개 배포 자산 파일명은 **ASCII** (`sh-dicom-studio-Setup-0.1.0.exe`). 한글 파일명 금지(URL/도구 호환).
+- 공개 배포 자산 파일명은 **ASCII** (`SH-DICOM-Studio-Setup-1.0.2.exe`). 한글 파일명 금지(URL/도구 호환).
 - 업로드 스크립트는 **버전을 파라미터로** 받게 만든다.
 - macOS 내부 번들 이름은 ASCII, 표시명만 한글 가능 (발사대 가이드의 pdf-editor 사고 참고).
 
@@ -44,16 +44,16 @@ dotnet publish src/ShDicomStudio.App/ShDicomStudio.App.csproj \
 
 ```ini
 [Setup]
-AppName=sh DICOM Studio
+AppName=SH DICOM Studio
 AppVersion=0.1.0
 AppPublisher=SeongHyun Lee
 AppCopyright=Copyright (C) 2026 SeongHyun Lee
 VersionInfoCompany=SeongHyun Lee
 VersionInfoCopyright=Copyright (C) 2026 SeongHyun Lee
 LicenseFile=..\LICENSE.txt
-DefaultDirName={autopf}\sh DICOM Studio
-DefaultGroupName=sh DICOM Studio
-OutputBaseFilename=sh-dicom-studio-Setup-0.1.0
+DefaultDirName={autopf}\SH DICOM Studio
+DefaultGroupName=SH DICOM Studio
+OutputBaseFilename=SH-DICOM-Studio-Setup-1.0.2
 OutputDir=Output
 Compression=lzma2
 SolidCompression=yes
@@ -63,8 +63,8 @@ ArchitecturesInstallIn64BitMode=x64
 Source: "..\publish\win-x64\*"; DestDir: "{app}"; Flags: recursesubdirs
 
 [Icons]
-Name: "{group}\sh DICOM Studio"; Filename: "{app}\ShDicomStudio.App.exe"
-Name: "{autodesktop}\sh DICOM Studio"; Filename: "{app}\ShDicomStudio.App.exe"
+Name: "{group}\SH DICOM Studio"; Filename: "{app}\ShDicomStudio.App.exe"
+Name: "{autodesktop}\SH DICOM Studio"; Filename: "{app}\ShDicomStudio.App.exe"
 
 [Run]
 Filename: "{app}\ShDicomStudio.App.exe"; Description: "실행"; Flags: nowait postinstall skipifsilent
@@ -77,7 +77,7 @@ Filename: "{app}\ShDicomStudio.App.exe"; Description: "실행"; Flags: nowait po
 ```bash
 cd installer
 WINEDEBUG=-all wine "C:\\Program Files\\Inno Setup 6\\ISCC.exe" sh-dicom-studio.iss
-cp Output/sh-dicom-studio-Setup-<버전>.exe /mnt/c/Users/user/Desktop/   # 바탕화면 전달
+cp Output/SH-DICOM-Studio-Setup-<버전>.exe /mnt/c/Users/user/Desktop/seonghyun/   # 바탕화면 seonghyun 폴더로 전달(이전 판은 지운다)
 ```
 
 ## 3단계 — macOS dmg / Linux AppImage `[?]`

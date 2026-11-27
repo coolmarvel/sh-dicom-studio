@@ -1,7 +1,7 @@
 ---
 title: 세션 로그
 created: 2026-08-06
-updated: 2026-08-06
+updated: 2026-11-27
 domain: development
 ---
 
@@ -10,6 +10,16 @@ domain: development
 이 파일이 **"언제 무슨 일이 있었나"의 SSOT**다. 세션마다 최상단에 블록 추가.
 
 블록 형식: `## YYYY-MM-DD — 제목` 아래에 **요청/피드백 → 수정 → 검증 → 다음** 순서로 간결하게.
+
+## 2026-11-27 — 제품 이름 SH DICOM Studio 로 통일 (v1.0.2)
+
+- **요청**: pdf-editor·remote-assist 를 뺀 내 앱 이름을 `SH …` 로 통일(SH Compositor·SH e-Consent·SH Messenger·SH Form Designer·SH Video Editor·SH IP Scanner).
+  이 PC 설치본은 `D:\Program Files\sh DICOM Studio` 가 아니라 다른 앱처럼 `D:\SH DICOM Studio` 로 — 이전 설치본은 지우고 새로 설치, 인스톨러 교체·커밋·푸시.
+- **수정**: `sh DICOM Studio` → `SH DICOM Studio` — App csproj Product, 메인·로그인 창 제목(`MainWindow.axaml`·`LoginWindow.axaml`·`App.axaml.cs`),
+  내보낸 이미지 오른쪽 아래 글자(`ImageExporter`), 인스톨러(AppName·기본 폴더·시작 메뉴·바로가기, 산출물 `SH-DICOM-Studio-Setup-<판>.exe`),
+  docker-compose·서버 Dockerfile 머리말, packaging 가이드·CLAUDE.md(인스톨러 전달 위치를 실제로 쓰는 `바탕화면\seonghyun` 으로).
+- **그대로 둔 것**: AppId, exe·어셈블리 이름, 관리자 권한 설치(`{autopf}`) 방식, 지난 기록. 버전 1.0.1 → **1.0.2**(csproj Version·AssemblyVersion·FileVersion·iss).
+- **검증**: `dotnet build ShDicomStudio.sln`(0 경고·0 오류) · `dotnet test`(Core 34 통과) · `dotnet format --verify-no-changes` 통과.
 
 ## 2026-10-29 - 하네스 훅 입력 결함 수정 (코드·버전 변경 없음)
 

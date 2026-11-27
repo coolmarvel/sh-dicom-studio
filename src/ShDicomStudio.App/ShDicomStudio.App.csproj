@@ -7,13 +7,13 @@
     <!-- exe 아이콘 (작업표시줄·탐색기) -->
     <ApplicationIcon>Assets/appicon.ico</ApplicationIcon>
     <!-- 저작자/라이센스 메타데이터 — 탐색기 '속성 > 자세히'와 인스톨러에 노출된다. -->
-    <Product>sh DICOM Studio</Product>
+    <Product>SH DICOM Studio</Product>
     <Authors>SeongHyun Lee</Authors>
     <Company>SeongHyun Lee</Company>
     <Copyright>© 2026 이성현 (SeongHyun Lee). All rights reserved.</Copyright>
-    <Version>1.0.1</Version>
-    <AssemblyVersion>1.0.1.0</AssemblyVersion>
-    <FileVersion>1.0.1.0</FileVersion>
+    <Version>1.0.2</Version>
+    <AssemblyVersion>1.0.2.0</AssemblyVersion>
+    <FileVersion>1.0.2.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

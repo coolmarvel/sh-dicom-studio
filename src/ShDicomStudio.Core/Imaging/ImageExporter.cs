@@ -60,7 +60,7 @@ public static class ImageExporter
 
         var bottomRight = Join(
             string.IsNullOrWhiteSpace(info.ReferringPhysician) ? null : $"Ref. {info.ReferringPhysician}",
-            "sh DICOM Studio");
+            "SH DICOM Studio");
 
         image.Mutate(ctx =>
         {

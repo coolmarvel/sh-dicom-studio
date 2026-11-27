@@ -1,4 +1,4 @@
-# sh DICOM Studio 서버 — 멀티스테이지 빌드 (SDK 로 빌드 → 런타임만 담아 슬림하게)
+# SH DICOM Studio 서버 — 멀티스테이지 빌드 (SDK 로 빌드 → 런타임만 담아 슬림하게)
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY src/ShDicomStudio.Server/ShDicomStudio.Server.csproj ShDicomStudio.Server/

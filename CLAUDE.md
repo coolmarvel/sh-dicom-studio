@@ -24,8 +24,8 @@
 2. 검증을 통과하기 전에는 커밋 메시지 작성/산출물 전달을 하지 않는다:
    `dotnet build ShDicomStudio.sln && dotnet test ShDicomStudio.sln && dotnet format ShDicomStudio.sln --verify-no-changes`
 3. 버전을 판단해 올린다 (아래 "버전 정책").
-4. 산출물 전달: 릴리스급이면 인스톨러(`sh-dicom-studio-Setup-<버전>.exe`)를 바탕화면
-   (`/mnt/c/Users/user/Desktop/`)에 복사. 개발 중 확인은 `dotnet run` 안내로 충분.
+4. 산출물 전달: 릴리스급이면 인스톨러(`SH-DICOM-Studio-Setup-<버전>.exe`)를 바탕화면
+   (`/mnt/c/Users/user/Desktop/seonghyun/`)에 복사하고 이전 판 인스톨러는 지운다. 개발 중 확인은 `dotnet run` 안내로 충분.
 
 ## 버전 정책 (semver `MAJOR.MINOR.PATCH`)
 

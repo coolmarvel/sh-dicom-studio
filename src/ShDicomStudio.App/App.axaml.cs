@@ -34,7 +34,7 @@ public partial class App : Application
 
                 var main = new MainWindow { DataContext = new MainViewModel() };
                 if (AppSession.IsOnline)
-                    main.Title = $"sh DICOM Studio — {AppSession.DisplayName} ({AppSession.Username})";
+                    main.Title = $"SH DICOM Studio — {AppSession.DisplayName} ({AppSession.Username})";
                 desktop.MainWindow = main;
                 main.Show();
             };

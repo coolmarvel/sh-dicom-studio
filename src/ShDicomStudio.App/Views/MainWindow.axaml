@@ -8,7 +8,7 @@
         mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="900"
         x:Class="ShDicomStudio.App.Views.MainWindow"
         x:DataType="vm:MainViewModel"
-        Title="sh DICOM Studio"
+        Title="SH DICOM Studio"
         Icon="avares://ShDicomStudio.App/Assets/appicon.ico"
         Width="1400" Height="900"
         Background="{StaticResource ChromeBrush}">

@@ -1,8 +1,8 @@
-; sh DICOM Studio — Inno Setup 스크립트 (docs/guides/packaging.md 참고)
+; SH DICOM Studio — Inno Setup 스크립트 (docs/guides/packaging.md 참고)
 ; 저작자/라이센스: 이성현 (SeongHyun Lee). 설치 시 라이센스 동의 페이지에 표시된다.
 
-#define MyAppName "sh DICOM Studio"
-#define MyAppVersion "1.0.1"
+#define MyAppName "SH DICOM Studio"
+#define MyAppVersion "1.0.2"
 #define MyAppPublisher "SeongHyun Lee"
 #define MyAppExeName "ShDicomStudio.App.exe"
 
@@ -18,7 +18,7 @@ AppCopyright=Copyright (C) 2026 SeongHyun Lee
 LicenseFile=LICENSE.txt
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
-OutputBaseFilename=sh-dicom-studio-Setup-{#MyAppVersion}
+OutputBaseFilename=SH-DICOM-Studio-Setup-{#MyAppVersion}
 OutputDir=Output
 Compression=lzma2
 SolidCompression=yes
